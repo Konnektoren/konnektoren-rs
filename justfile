@@ -86,8 +86,11 @@ setup:
 # Pre-commit checks
 pre-commit: lint test
 
-tui:
-    cargo run -p konnektoren-tui
+tui +ARGS="":
+    cargo run -p konnektoren-tui -- {{ ARGS }}
 
-tui-ssh:
-    RUST_LOG=info cargo run -p konnektoren-tui --bin konnektoren-tui-ssh --features="ssh"
+cli +ARGS="":
+    cargo run -p konnektoren-tui --all-features -- {{ ARGS }}
+
+tui-ssh +ARGS="":
+    RUST_LOG=info cargo run -p konnektoren-tui --bin konnektoren-tui-ssh --features="ssh" -- {{ ARGS }}

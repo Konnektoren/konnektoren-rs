@@ -3,16 +3,19 @@ use thiserror::Error;
 #[derive(Error, Debug)]
 pub enum Error {
     #[error("IO error: {0}")]
-    IoError(#[from] std::io::Error),
+    Io(#[from] std::io::Error),
 
     #[error("Command execution error: {0}")]
-    CommandError(#[from] konnektoren_core::commands::CommandError),
+    Command(#[from] konnektoren_core::commands::CommandError),
 
     #[error("UI error: {0}")]
-    UiError(String),
+    Ui(String),
 
     #[error("State error: {0}")]
-    StateError(String),
+    State(String),
+
+    #[error("Manifest asset error: {0}")]
+    ManifestAssets(#[from] crate::manifest_assets::ManifestAssetError),
 }
 
 pub type Result<T> = std::result::Result<T, Error>;

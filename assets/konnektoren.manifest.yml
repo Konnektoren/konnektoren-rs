@@ -23,4 +23,4 @@ assets:
   path: assets
 
 game_paths:
-  - konnektoren.yml
+  - konnektoren_path.yml

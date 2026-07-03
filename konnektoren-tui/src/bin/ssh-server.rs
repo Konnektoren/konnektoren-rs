@@ -1,6 +1,15 @@
 #[cfg(feature = "ssh")]
 use konnektoren_tui::prelude::SshServer;
 
+#[cfg(all(feature = "ssh", feature = "cli"))]
+use clap::Parser;
+
+#[cfg(all(feature = "ssh", feature = "cli"))]
+use konnektoren_tui::prelude::Cli;
+
+#[cfg(all(feature = "ssh", not(feature = "cli")))]
+use konnektoren_tui::prelude::ManifestSourceResolver;
+
 #[cfg(feature = "ssh")]
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -21,7 +30,23 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
     tracing::info!("Press Ctrl+C to stop the server");
 
-    SshServer::run(&host, port).await?;
+    let manifest_source = {
+        #[cfg(feature = "cli")]
+        {
+            Cli::parse().manifest_source()
+        }
+
+        #[cfg(not(feature = "cli"))]
+        {
+            ManifestSourceResolver::default().resolve_from_env()?
+        }
+    };
+
+    if let Some(manifest_source) = manifest_source {
+        SshServer::run_with_manifest_source(&host, port, manifest_source).await?;
+    } else {
+        SshServer::run(&host, port).await?;
+    }
 
     Ok(())
 }

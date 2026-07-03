@@ -43,19 +43,26 @@ impl App {
         }
     }
 
+    pub fn with_session(session: Session) -> Self {
+        App {
+            session,
+            ..Self::new()
+        }
+    }
+
     pub fn set_username(&mut self, username: String) {
         self.username = Some(username);
     }
 
     #[cfg(feature = "crossterm")]
     pub fn run(&mut self, terminal: &mut Tui) -> Result<()> {
-        terminal.clear().map_err(Error::IoError)?;
-        terminal.hide_cursor().map_err(Error::IoError)?;
+        terminal.clear().map_err(Error::Io)?;
+        terminal.hide_cursor().map_err(Error::Io)?;
 
         while !self.exit {
             terminal
                 .draw(|frame| self.render_frame(frame))
-                .map_err(Error::IoError)?;
+                .map_err(Error::Io)?;
             self.handle_events()?;
         }
         Ok(())
@@ -101,7 +108,7 @@ impl App {
         let command = Command::Challenge(ChallengeCommand::SolveOption(option_id));
         command
             .execute(&mut self.session.game_state)
-            .map_err(Error::CommandError)
+            .map_err(Error::Command)
     }
 
     pub fn toggle_map(&mut self) {
@@ -134,7 +141,7 @@ impl App {
 
     fn handle_events(&mut self) -> Result<()> {
         #[cfg(feature = "crossterm")]
-        match event::read().map_err(Error::IoError)? {
+        match event::read().map_err(Error::Io)? {
             Event::Key(key_event) if key_event.kind == KeyEventKind::Press => {
                 if let Err(e) = self.handle_key_event(key_event) {
                     tracing::error!("Error handling key event: {}", e);
@@ -152,7 +159,7 @@ impl Widget for &App {
             .username
             .as_ref()
             .map(|u| format!(" User: {} ", u))
-            .unwrap_or_else(|| " Konnektoren ".to_string());
+            .unwrap_or_else(|| self.title.clone());
 
         let instructions = Line::from(vec![
             " Previous ".into(),
