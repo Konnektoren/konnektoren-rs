@@ -3,7 +3,7 @@ use ratatui::{
     prelude::*,
     style::Styled,
     symbols::Marker,
-    widgets::{Block, canvas::Line, canvas::*},
+    widgets::{Block, Widget, canvas::Line, canvas::*},
 };
 
 pub struct MapWidget<'a> {
@@ -16,22 +16,22 @@ impl MapWidget<'_> {
         let x_min = challenges
             .iter()
             .map(|(_, x, _)| *x)
-            .min_by(|a, b| a.partial_cmp(b).unwrap())
+            .min_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal))
             .unwrap_or(0.0);
         let x_max = challenges
             .iter()
             .map(|(_, x, _)| *x)
-            .max_by(|a, b| a.partial_cmp(b).unwrap())
+            .max_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal))
             .unwrap_or(0.0);
         let y_min = challenges
             .iter()
             .map(|(_, _, y)| *y)
-            .min_by(|a, b| a.partial_cmp(b).unwrap())
+            .min_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal))
             .unwrap_or(0.0);
         let y_max = challenges
             .iter()
             .map(|(_, _, y)| *y)
-            .max_by(|a, b| a.partial_cmp(b).unwrap())
+            .max_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal))
             .unwrap_or(0.0);
 
         ([x_min - 10.0, x_max + 10.0], [y_min - 10.0, y_max + 10.0])
@@ -83,7 +83,7 @@ impl<'a> MapWidget<'a> {
         area: Rect,
         buf: &mut Buffer,
     ) {
-        let canvas = Canvas::default()
+        Canvas::default()
             .block(Block::bordered().title(title))
             .marker(Marker::Braille)
             .paint(|ctx| {
@@ -103,15 +103,14 @@ impl<'a> MapWidget<'a> {
                 }
             })
             .x_bounds(x_bounds)
-            .y_bounds(y_bounds);
-
-        canvas.render(area, buf);
+            .y_bounds(y_bounds)
+            .render(area, buf);
     }
 }
 
 impl Widget for MapWidget<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        let canvas = Canvas::default()
+        Canvas::default()
             .block(Block::bordered().title("World"))
             .marker(Marker::Braille)
             .paint(|ctx| {
@@ -121,9 +120,8 @@ impl Widget for MapWidget<'_> {
                 });
             })
             .x_bounds([-180.0, 180.0])
-            .y_bounds([-90.0, 90.0]);
-
-        canvas.render(area, buf);
+            .y_bounds([-90.0, 90.0])
+            .render(area, buf);
 
         let challenges = self.process_challenges();
         let (x_bounds, y_bounds) = Self::calculate_bounds(&challenges);

@@ -33,10 +33,15 @@ impl Widget for OptionsWidget {
                     .iter()
                     .map(|option| Line::from(format!("<{}> {}", option.id, option.name)));
 
-                let text = Text::from(options.collect::<Vec<Line>>());
-                Paragraph::new(text).block(block).render(area, buf);
+                Paragraph::new(Text::from(options.collect::<Vec<Line>>()))
+                    .block(block)
+                    .render(area, buf);
             }
-            _ => panic!("Invalid challenge type"),
+            _ => {
+                Paragraph::new("No options")
+                    .block(Block::bordered().title(" Options "))
+                    .render(area, buf);
+            }
         }
     }
 }

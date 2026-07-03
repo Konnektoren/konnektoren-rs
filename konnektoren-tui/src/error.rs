@@ -8,6 +8,9 @@ pub enum Error {
     #[error("Command execution error: {0}")]
     Command(#[from] konnektoren_core::commands::CommandError),
 
+    #[error("Game error: {0}")]
+    Game(#[from] konnektoren_core::game::GameError),
+
     #[error("UI error: {0}")]
     Ui(String),
 

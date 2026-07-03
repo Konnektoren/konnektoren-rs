@@ -1,8 +1,6 @@
 use crate::{
-    challenge_tabs::ChallengeTabs,
-    challenge_widget::ChallengeWidget,
+    components::{ChallengeList, ChallengeTabs, ChallengeWidget, MapWidget, PageTab, PageTabs},
     error::{Error, Result},
-    map_widget::MapWidget,
 };
 
 #[cfg(feature = "crossterm")]
@@ -12,6 +10,7 @@ use crate::tui::Tui;
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
 
 use konnektoren_core::{
+    challenges::Timed,
     commands::{ChallengeCommand, Command, CommandTrait, GameCommand},
     session::Session,
 };
@@ -22,15 +21,34 @@ use ratatui::{
     style::Stylize,
     symbols::border,
     text::Line,
-    widgets::{Block, Borders, Paragraph, Widget},
+    widgets::{Block, Borders, Paragraph, StatefulWidget, Widget},
 };
+
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+enum AppPage {
+    #[default]
+    Challenge,
+    Challenges,
+    Map,
+}
+
+impl AppPage {
+    const fn tab(self) -> PageTab {
+        match self {
+            Self::Challenge => PageTab::Challenge,
+            Self::Challenges => PageTab::Challenges,
+            Self::Map => PageTab::Map,
+        }
+    }
+}
 
 #[derive(Debug, Default)]
 pub struct App {
     title: String,
     username: Option<String>,
     session: Session,
-    show_map: bool,
+    page: AppPage,
+    selected_challenge_index: usize,
     exit: bool,
 }
 
@@ -39,6 +57,7 @@ impl App {
         App {
             title: " Konnektoren ".into(),
             username: None,
+            page: AppPage::Challenge,
             ..Self::default()
         }
     }
@@ -94,6 +113,8 @@ impl App {
         let command = Command::Game(GameCommand::NextChallenge);
         if let Err(err) = command.execute(&mut self.session.game_state) {
             tracing::error!("Failed to execute next challenge command: {}", err);
+        } else {
+            self.selected_challenge_index = self.session.game_state.current_challenge_index;
         }
     }
 
@@ -101,6 +122,8 @@ impl App {
         let command = Command::Game(GameCommand::PreviousChallenge);
         if let Err(err) = command.execute(&mut self.session.game_state) {
             tracing::error!("Failed to execute previous challenge command: {}", err);
+        } else {
+            self.selected_challenge_index = self.session.game_state.current_challenge_index;
         }
     }
 
@@ -112,13 +135,86 @@ impl App {
     }
 
     pub fn toggle_map(&mut self) {
-        self.show_map = !self.show_map;
+        self.page = if self.page == AppPage::Map {
+            AppPage::Challenge
+        } else {
+            AppPage::Map
+        };
+    }
+
+    pub fn show_challenge_page(&mut self) {
+        self.page = AppPage::Challenge;
+    }
+
+    pub fn show_challenge_list(&mut self) {
+        self.selected_challenge_index = self.session.game_state.current_challenge_index;
+        self.page = AppPage::Challenges;
+    }
+
+    pub fn select_next_challenge_in_list(&mut self) {
+        let challenge_count = self
+            .current_game_path()
+            .map_or(0, |path| path.challenges.len());
+        if challenge_count > 0 {
+            self.selected_challenge_index =
+                (self.selected_challenge_index + 1).min(challenge_count - 1);
+        }
+    }
+
+    pub fn select_previous_challenge_in_list(&mut self) {
+        self.selected_challenge_index = self.selected_challenge_index.saturating_sub(1);
+    }
+
+    pub fn open_selected_challenge(&mut self) -> Result<()> {
+        self.open_challenge(self.selected_challenge_index)?;
+        self.page = AppPage::Challenge;
+        Ok(())
+    }
+
+    pub fn open_challenge(&mut self, index: usize) -> Result<()> {
+        let challenge_id = self
+            .current_game_path()
+            .and_then(|path| path.challenges.get(index))
+            .map(|challenge| challenge.id.clone())
+            .ok_or_else(|| Error::State(format!("challenge index not found: {index}")))?;
+
+        let mut challenge = self
+            .session
+            .game_state
+            .game
+            .create_challenge(&challenge_id)
+            .map_err(Error::Game)?;
+        challenge.start();
+
+        self.session.game_state.challenge = challenge;
+        self.session.game_state.current_challenge_index = index;
+        self.session.game_state.current_task_index = 0;
+        self.selected_challenge_index = index;
+        Ok(())
+    }
+
+    fn current_game_path(&self) -> Option<&konnektoren_core::game::GamePath> {
+        self.session
+            .game_state
+            .game
+            .game_paths
+            .get(self.session.game_state.current_game_path)
     }
 
     #[cfg(feature = "crossterm")]
     fn handle_key_event(&mut self, key_event: KeyEvent) -> Result<()> {
         match key_event.code {
             KeyCode::Char('q') | KeyCode::Esc => self.exit(),
+            KeyCode::Char('c') => self.show_challenge_page(),
+            KeyCode::Char('g') => self.show_challenge_list(),
+            KeyCode::Char('m') => self.toggle_map(),
+            KeyCode::Up | KeyCode::Char('k') if self.page == AppPage::Challenges => {
+                self.select_previous_challenge_in_list();
+            }
+            KeyCode::Down | KeyCode::Char('j') if self.page == AppPage::Challenges => {
+                self.select_next_challenge_in_list();
+            }
+            KeyCode::Enter if self.page == AppPage::Challenges => self.open_selected_challenge()?,
             KeyCode::Left | KeyCode::Char('h') => self.previous_question(),
             KeyCode::Right | KeyCode::Char('l') => self.next_question(),
             KeyCode::Tab => self.next_challenge(),
@@ -133,7 +229,6 @@ impl App {
             KeyCode::Char('7') => self.solve_option(7)?,
             KeyCode::Char('8') => self.solve_option(8)?,
             KeyCode::Char('9') => self.solve_option(9)?,
-            KeyCode::Char('m') => self.toggle_map(),
             _ => {}
         }
         Ok(())
@@ -168,6 +263,10 @@ impl Widget for &App {
             "<Right>".blue().bold(),
             " Map ".into(),
             "<M>".blue().bold(),
+            " List ".into(),
+            "<G>".blue().bold(),
+            " Play ".into(),
+            "<C>".blue().bold(),
             " Quit ".into(),
             "<Q> ".blue().bold(),
         ]);
@@ -188,28 +287,42 @@ impl Widget for &App {
             vertical: 1,
         });
 
-        if self.show_map {
-            let map = MapWidget::new(
-                &self.session.game_state.game.game_paths[0],
-                self.session.game_state.current_challenge_index,
-            );
-            map.render(inner_area, buf);
-        } else {
-            let vertical = Layout::vertical([Constraint::Length(1), Constraint::Min(0)]);
-            let [tab_area, challenge_area] = vertical.areas(inner_area);
+        let vertical = Layout::vertical([Constraint::Length(1), Constraint::Min(0)]);
+        let [page_tabs_area, content_area] = vertical.areas(inner_area);
+        PageTabs::new(self.page.tab()).render(page_tabs_area, buf);
 
-            let tabs = ChallengeTabs::new(
-                &self.session.game_state.game.game_paths[0],
-                self.session.game_state.current_challenge_index,
-            );
-            tabs.render(tab_area, buf);
+        let Some(game_path) = self.current_game_path() else {
+            Paragraph::new("No game path").render(content_area, buf);
+            return;
+        };
 
-            let challenge_widget = ChallengeWidget {
-                challenge: &self.session.game_state.challenge,
-                show_help: true,
-                current_question: self.session.game_state.current_task_index,
-            };
-            challenge_widget.render(challenge_area, buf);
+        match self.page {
+            AppPage::Map => {
+                MapWidget::new(game_path, self.session.game_state.current_challenge_index)
+                    .render(content_area, buf);
+            }
+            AppPage::Challenges => {
+                let mut state = ratatui::widgets::ListState::default();
+                ChallengeList::new(
+                    game_path,
+                    self.session.game_state.current_challenge_index,
+                    self.selected_challenge_index,
+                )
+                .render(content_area, buf, &mut state);
+            }
+            AppPage::Challenge => {
+                let vertical = Layout::vertical([Constraint::Length(1), Constraint::Min(0)]);
+                let [tab_area, challenge_area] = vertical.areas(content_area);
+                ChallengeTabs::new(game_path, self.session.game_state.current_challenge_index)
+                    .render(tab_area, buf);
+
+                ChallengeWidget {
+                    challenge: &self.session.game_state.challenge,
+                    show_help: true,
+                    current_question: self.session.game_state.current_task_index,
+                }
+                .render(challenge_area, buf);
+            }
         }
     }
 }
@@ -226,5 +339,33 @@ mod tests {
         assert!(app.exit);
 
         Ok(())
+    }
+
+    #[test]
+    fn open_challenge_selects_requested_index() -> Result<()> {
+        let mut app = App::new();
+        app.open_challenge(1)?;
+
+        assert_eq!(app.session.game_state.current_challenge_index, 1);
+        assert_eq!(app.session.game_state.current_task_index, 0);
+        assert_eq!(app.selected_challenge_index, 1);
+        Ok(())
+    }
+
+    #[test]
+    fn list_selection_is_bounded() {
+        let mut app = App::new();
+
+        app.select_previous_challenge_in_list();
+        assert_eq!(app.selected_challenge_index, 0);
+
+        for _ in 0..100 {
+            app.select_next_challenge_in_list();
+        }
+        let last_index = app
+            .current_game_path()
+            .map(|path| path.challenges.len().saturating_sub(1))
+            .unwrap_or_default();
+        assert_eq!(app.selected_challenge_index, last_index);
     }
 }

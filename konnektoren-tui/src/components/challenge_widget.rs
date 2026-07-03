@@ -8,7 +8,7 @@ use ratatui::{
     widgets::{Block, Paragraph, Widget},
 };
 
-use crate::{options_widget::OptionsWidget, results_widget::ResultsWidget};
+use super::{options_widget::OptionsWidget, results_widget::ResultsWidget};
 
 pub struct ChallengeWidget<'a> {
     pub challenge: &'a Challenge,
@@ -35,17 +35,17 @@ impl Widget for ChallengeWidget<'_> {
                     .title(title.bold())
                     .border_set(border::ROUNDED);
 
-                let question = dataset.questions.get(self.current_question).unwrap();
-                let help = question.help.as_str();
+                let text = if let Some(question) = dataset.questions.get(self.current_question) {
+                    let mut lines = vec![Line::from(question.question.as_str())];
+                    if self.show_help {
+                        lines.push(Line::from(question.help.as_str()).dim());
+                    }
+                    Text::from(lines)
+                } else {
+                    Text::from(Line::from("Question not found").red())
+                };
 
-                let mut lines = vec![Line::from(question.question.as_str())];
-                if self.show_help {
-                    lines.push(Line::from(help).dim());
-                }
-
-                let text = Text::from(lines);
-
-                let layout2 = Layout::default()
+                let panels = Layout::default()
                     .direction(Direction::Horizontal)
                     .constraints(vec![Constraint::Percentage(60), Constraint::Percentage(40)])
                     .split(layout[1]);
@@ -55,13 +55,14 @@ impl Widget for ChallengeWidget<'_> {
                     .block(block)
                     .render(layout[0], buf);
 
-                let options = OptionsWidget::new(self.challenge);
-                options.render(layout2[0], buf);
-
-                let results = ResultsWidget::new(self.challenge);
-                results.render(layout2[1], buf);
+                OptionsWidget::new(self.challenge).render(panels[0], buf);
+                ResultsWidget::new(self.challenge).render(panels[1], buf);
             }
-            _ => panic!("Invalid challenge type"),
+            _ => {
+                Paragraph::new("Unsupported challenge type")
+                    .block(Block::bordered().title(" Challenge "))
+                    .render(area, buf);
+            }
         }
     }
 }

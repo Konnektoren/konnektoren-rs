@@ -26,10 +26,6 @@ impl Widget for ResultsWidget<'_> {
             .constraints(vec![Constraint::Percentage(20), Constraint::Percentage(80)])
             .split(area);
 
-        let block = Block::bordered()
-            .title(" Results ".bold())
-            .border_set(border::ROUNDED);
-
         let text: Text = match (
             &self.challenge.challenge_type,
             &self.challenge.challenge_result,
@@ -43,30 +39,36 @@ impl Widget for ResultsWidget<'_> {
                         } else {
                             "Incorrect".red().bold()
                         };
-                        let line = Line::from(vec![
+                        text.push_line(Line::from(vec![
                             format!(" {}: {} ", question.question, option.name).into(),
                             correct,
-                        ]);
-                        text.push_line(line);
+                        ]));
                         text
                     },
                 )
             }
-            _ => todo!("Implement other challenge types"),
+            _ => Text::from("No results"),
         };
 
         let text = text.into_iter().rev().collect::<Vec<Line>>();
-        Paragraph::new(text).block(block).render(layout[1], buf);
+        Paragraph::new(text)
+            .block(
+                Block::bordered()
+                    .title(" Results ".bold())
+                    .border_set(border::ROUNDED),
+            )
+            .render(layout[1], buf);
 
         let performance = self.challenge.performance(&self.challenge.challenge_result);
-
-        let perf_block = Block::bordered()
-            .title(" Performance ".bold())
-            .border_set(border::ROUNDED);
-
-        let perf_text = Text::from(vec![Line::from(format!("Performance: {}", performance))]);
-        Paragraph::new(perf_text)
-            .block(perf_block)
-            .render(layout[0], buf);
+        Paragraph::new(Text::from(vec![Line::from(format!(
+            "Performance: {}",
+            performance
+        ))]))
+        .block(
+            Block::bordered()
+                .title(" Performance ".bold())
+                .border_set(border::ROUNDED),
+        )
+        .render(layout[0], buf);
     }
 }

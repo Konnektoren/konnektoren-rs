@@ -280,6 +280,26 @@ impl Handler for SshServer {
                             app.toggle_map();
                             should_redraw = true;
                         }
+                        b'c' => {
+                            app.show_challenge_page();
+                            should_redraw = true;
+                        }
+                        b'g' => {
+                            app.show_challenge_list();
+                            should_redraw = true;
+                        }
+                        b'j' => {
+                            app.select_next_challenge_in_list();
+                            should_redraw = true;
+                        }
+                        b'k' => {
+                            app.select_previous_challenge_in_list();
+                            should_redraw = true;
+                        }
+                        b'\r' | b'\n' => {
+                            let _ = app.open_selected_challenge();
+                            should_redraw = true;
+                        }
                         b'h' => {
                             app.previous_question();
                             should_redraw = true;
