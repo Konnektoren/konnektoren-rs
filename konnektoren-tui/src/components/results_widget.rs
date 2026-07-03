@@ -8,14 +8,32 @@ use ratatui::{
 };
 
 use konnektoren_core::challenges::{Challenge, ChallengeResult, ChallengeType, Performance};
+use konnektoren_platform::i18n::{I18nConfig, Language};
 
 pub struct ResultsWidget<'a> {
     pub challenge: &'a Challenge,
+    i18n: &'a I18nConfig,
+    language: Option<&'a Language>,
 }
 
 impl<'a> ResultsWidget<'a> {
-    pub fn new(challenge: &'a Challenge) -> Self {
-        ResultsWidget { challenge }
+    pub fn new(
+        challenge: &'a Challenge,
+        i18n: &'a I18nConfig,
+        language: Option<&'a Language>,
+    ) -> Self {
+        ResultsWidget {
+            challenge,
+            i18n,
+            language,
+        }
+    }
+
+    fn t(&self, key: &str) -> String {
+        self.language.map_or_else(
+            || self.i18n.t(key),
+            |language| self.i18n.t_with_lang(key, language),
+        )
     }
 }
 
@@ -34,10 +52,15 @@ impl Widget for ResultsWidget<'_> {
                 dataset.questions.iter().zip(options.iter()).fold(
                     Text::default(),
                     |mut text, (question, option)| {
-                        let correct = if question.option == option.id {
-                            "Correct".green().bold()
+                        let label = if question.option == option.id {
+                            self.t("Correct")
                         } else {
-                            "Incorrect".red().bold()
+                            self.t("Incorrect")
+                        };
+                        let correct = if question.option == option.id {
+                            label.green().bold()
+                        } else {
+                            label.red().bold()
                         };
                         text.push_line(Line::from(vec![
                             format!(" {}: {} ", question.question, option.name).into(),
@@ -47,26 +70,27 @@ impl Widget for ResultsWidget<'_> {
                     },
                 )
             }
-            _ => Text::from("No results"),
+            _ => Text::from(self.t("No results")),
         };
 
         let text = text.into_iter().rev().collect::<Vec<Line>>();
         Paragraph::new(text)
             .block(
                 Block::bordered()
-                    .title(" Results ".bold())
+                    .title(format!(" {} ", self.t("Results")).bold())
                     .border_set(border::ROUNDED),
             )
             .render(layout[1], buf);
 
         let performance = self.challenge.performance(&self.challenge.challenge_result);
         Paragraph::new(Text::from(vec![Line::from(format!(
-            "Performance: {}",
+            "{}: {}",
+            self.t("Performance"),
             performance
         ))]))
         .block(
             Block::bordered()
-                .title(" Performance ".bold())
+                .title(format!(" {} ", self.t("Performance")).bold())
                 .border_set(border::ROUNDED),
         )
         .render(layout[0], buf);

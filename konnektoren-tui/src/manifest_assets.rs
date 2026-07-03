@@ -48,6 +48,13 @@ pub enum ManifestAssetError {
     #[error("manifest {path} does not define any game_paths")]
     NoGamePaths { path: PathBuf },
 
+    #[error("language {language} is not supported by manifest {path}; supported: {supported}")]
+    UnsupportedLanguage {
+        path: PathBuf,
+        language: String,
+        supported: String,
+    },
+
     #[error("failed to read game path {path}: {source}")]
     ReadGamePath {
         path: PathBuf,
@@ -115,7 +122,16 @@ pub struct ManifestSessionLoader;
 
 impl ManifestSessionLoader {
     pub fn load(&self, source: &ManifestSource) -> Result<Session> {
+        self.load_with_language(source, None)
+    }
+
+    pub fn load_with_language(
+        &self,
+        source: &ManifestSource,
+        language: Option<&str>,
+    ) -> Result<Session> {
         let manifest = read_manifest(source.path())?;
+        validate_language(source.path(), &manifest, language)?;
         let manifest_dir = source.path().parent().unwrap_or_else(|| Path::new("."));
         let assets_dir = resolve_assets_dir(manifest_dir, manifest.asset_path());
         let game_paths = load_game_paths(source.path(), &assets_dir, manifest.game_paths())?;
@@ -162,6 +178,25 @@ fn read_manifest(path: &Path) -> Result<KonnektorenManifest> {
             path: path.to_path_buf(),
             message: source.to_string(),
         })
+}
+
+fn validate_language(
+    manifest_path: &Path,
+    manifest: &KonnektorenManifest,
+    language: Option<&str>,
+) -> Result<()> {
+    let Some(language) = language else {
+        return Ok(());
+    };
+    let supported = &manifest.i18n().languages;
+    if supported.is_empty() || supported.iter().any(|supported| supported == language) {
+        return Ok(());
+    }
+    Err(ManifestAssetError::UnsupportedLanguage {
+        path: manifest_path.to_path_buf(),
+        language: language.to_string(),
+        supported: supported.join(", "),
+    })
 }
 
 fn load_game_paths(
@@ -419,6 +454,67 @@ game_paths:
             session.game_state.game.game_paths[0].challenge_ids(),
             vec!["assets-first".to_string()]
         );
+        Ok(())
+    }
+
+    #[test]
+    fn manifest_loader_rejects_unsupported_language() -> Result<()> {
+        let temp_dir = tempfile::tempdir().map_err(|source| ManifestAssetError::ReadManifest {
+            path: PathBuf::from("tempdir"),
+            source,
+        })?;
+        let assets_dir = temp_dir.path().join("content");
+        fs::create_dir(&assets_dir).map_err(|source| ManifestAssetError::ReadManifest {
+            path: assets_dir.clone(),
+            source,
+        })?;
+
+        let game_path_yaml = r#"
+id: language-path
+name: Language Path
+challenges:
+  - id: language-first
+    name: Language First
+    description: First language challenge
+    challenge: konnektoren
+    tasks: 1
+    unlock_points: 0
+"#;
+        let game_path_path = assets_dir.join("level.yml");
+        fs::File::create(&game_path_path)
+            .and_then(|mut file| file.write_all(game_path_yaml.as_bytes()))
+            .map_err(|source| ManifestAssetError::ReadGamePath {
+                path: game_path_path.clone(),
+                source,
+            })?;
+
+        let manifest_yaml = r#"
+package:
+  id: language-package
+  name: Language Package
+assets:
+  path: content
+i18n:
+  default_language: de
+  languages: [de, en]
+game_paths:
+  - level.yml
+"#;
+        let manifest_path = temp_dir.path().join("konnektoren.manifest.yml");
+        fs::File::create(&manifest_path)
+            .and_then(|mut file| file.write_all(manifest_yaml.as_bytes()))
+            .map_err(|source| ManifestAssetError::ReadManifest {
+                path: manifest_path.clone(),
+                source,
+            })?;
+
+        let result = ManifestSessionLoader
+            .load_with_language(&ManifestSource::new(&manifest_path), Some("fr"));
+
+        assert!(matches!(
+            result,
+            Err(ManifestAssetError::UnsupportedLanguage { .. })
+        ));
         Ok(())
     }
 }

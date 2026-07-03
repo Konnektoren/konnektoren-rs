@@ -17,6 +17,7 @@ use konnektoren_core::{
     commands::{ChallengeCommand, Command, CommandTrait, GameCommand},
     session::Session,
 };
+use konnektoren_platform::i18n::{I18nAssets, I18nConfig, JsonTranslationAsset, Language};
 use ratatui::{
     Frame,
     buffer::Buffer,
@@ -51,6 +52,8 @@ impl AppPage {
 pub struct App {
     title: String,
     username: Option<String>,
+    language: Option<String>,
+    i18n: I18nConfig,
     session: Session,
     page: AppPage,
     selected_challenge_index: usize,
@@ -63,6 +66,8 @@ impl App {
         App {
             title: " Konnektoren ".into(),
             username: None,
+            language: None,
+            i18n: I18nConfig::with_assets(JsonTranslationAsset::<I18nAssets>::new()),
             page: AppPage::Challenge,
             ..Self::default()
         }
@@ -77,6 +82,23 @@ impl App {
 
     pub fn set_username(&mut self, username: String) {
         self.username = Some(username);
+    }
+
+    pub fn set_language(&mut self, language: impl Into<String>) {
+        self.language = Some(language.into());
+    }
+
+    fn selected_language(&self) -> Option<Language> {
+        self.language
+            .as_deref()
+            .and_then(|language| Language::try_from_code(language).ok())
+    }
+
+    fn t(&self, key: &str) -> String {
+        self.selected_language().as_ref().map_or_else(
+            || self.i18n.t(key),
+            |language| self.i18n.t_with_lang(key, language),
+        )
     }
 
     #[cfg(feature = "crossterm")]
@@ -295,28 +317,33 @@ impl Widget for &App {
         let username_display = self
             .username
             .as_ref()
-            .map(|u| format!(" User: {} ", u))
+            .map(|u| format!(" {}: {} ", self.t("User"), u))
             .unwrap_or_else(|| self.title.clone());
+        let header = if let Some(language) = &self.language {
+            format!("{} {}: {} ", username_display, self.t("Language"), language)
+        } else {
+            username_display
+        };
 
         let instructions = Line::from(vec![
-            " Previous ".into(),
+            format!(" {} ", self.t("Previous")).into(),
             "<Left>".blue().bold(),
-            " Next ".into(),
+            format!(" {} ", self.t("Next")).into(),
             "<Right>".blue().bold(),
-            " Map ".into(),
+            format!(" {} ", self.t("Map")).into(),
             "<M>".blue().bold(),
-            " List ".into(),
+            format!(" {} ", self.t("List")).into(),
             "<G>".blue().bold(),
-            " Play ".into(),
+            format!(" {} ", self.t("Play")).into(),
             "<C>".blue().bold(),
-            " Info ".into(),
+            format!(" {} ", self.t("Info")).into(),
             "<I>".blue().bold(),
-            " Quit ".into(),
+            format!(" {} ", self.t("Quit")).into(),
             "<Q> ".blue().bold(),
         ]);
 
         let block = Block::default()
-            .title(Line::from(username_display).bold().centered())
+            .title(Line::from(header).bold().centered())
             .title_bottom(instructions.centered())
             .borders(Borders::ALL)
             .border_set(border::THICK);
@@ -333,17 +360,27 @@ impl Widget for &App {
 
         let vertical = Layout::vertical([Constraint::Length(1), Constraint::Min(0)]);
         let [page_tabs_area, content_area] = vertical.areas(inner_area);
-        PageTabs::new(self.page.tab()).render(page_tabs_area, buf);
+        PageTabs::new(
+            self.page.tab(),
+            &self.i18n,
+            self.selected_language().as_ref(),
+        )
+        .render(page_tabs_area, buf);
 
         let Some(game_path) = self.current_game_path() else {
-            Paragraph::new("No game path").render(content_area, buf);
+            Paragraph::new(self.t("No game path")).render(content_area, buf);
             return;
         };
 
         match self.page {
             AppPage::Map => {
-                MapWidget::new(game_path, self.session.game_state.current_challenge_index)
-                    .render(content_area, buf);
+                MapWidget::new(
+                    game_path,
+                    self.session.game_state.current_challenge_index,
+                    &self.i18n,
+                    self.selected_language().as_ref(),
+                )
+                .render(content_area, buf);
             }
             AppPage::Challenges => {
                 let mut state = ratatui::widgets::ListState::default();
@@ -351,6 +388,8 @@ impl Widget for &App {
                     game_path,
                     self.session.game_state.current_challenge_index,
                     self.selected_challenge_index,
+                    &self.i18n,
+                    self.selected_language().as_ref(),
                 )
                 .render(content_area, buf, &mut state);
             }
@@ -366,10 +405,12 @@ impl Widget for &App {
                         created.as_ref(),
                         active,
                         self.info_scroll,
+                        &self.i18n,
+                        self.selected_language().as_ref(),
                     )
                     .render(content_area, buf);
                 } else {
-                    Paragraph::new("No challenge selected").render(content_area, buf);
+                    Paragraph::new(self.t("No challenge selected")).render(content_area, buf);
                 }
             }
             AppPage::Challenge => {
@@ -382,6 +423,8 @@ impl Widget for &App {
                     challenge: &self.session.game_state.challenge,
                     show_help: true,
                     current_question: self.session.game_state.current_task_index,
+                    i18n: &self.i18n,
+                    language: self.selected_language().as_ref(),
                 }
                 .render(challenge_area, buf);
             }

@@ -1,4 +1,5 @@
 use konnektoren_core::game::GamePath;
+use konnektoren_platform::i18n::{I18nConfig, Language};
 use ratatui::{
     prelude::*,
     style::Styled,
@@ -9,6 +10,8 @@ use ratatui::{
 pub struct MapWidget<'a> {
     current_challenge: usize,
     path: &'a GamePath,
+    i18n: &'a I18nConfig,
+    language: Option<&'a Language>,
 }
 
 impl MapWidget<'_> {
@@ -39,11 +42,25 @@ impl MapWidget<'_> {
 }
 
 impl<'a> MapWidget<'a> {
-    pub fn new(path: &'a GamePath, current_challenge: usize) -> Self {
+    pub fn new(
+        path: &'a GamePath,
+        current_challenge: usize,
+        i18n: &'a I18nConfig,
+        language: Option<&'a Language>,
+    ) -> Self {
         MapWidget {
             path,
             current_challenge,
+            i18n,
+            language,
         }
+    }
+
+    fn t(&self, key: &str) -> String {
+        self.language.map_or_else(
+            || self.i18n.t(key),
+            |language| self.i18n.t_with_lang(key, language),
+        )
     }
 
     fn process_challenges(&self) -> Vec<(String, f64, f64)> {
@@ -111,7 +128,7 @@ impl<'a> MapWidget<'a> {
 impl Widget for MapWidget<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
         Canvas::default()
-            .block(Block::bordered().title("World"))
+            .block(Block::bordered().title(self.t("World")))
             .marker(Marker::Braille)
             .paint(|ctx| {
                 ctx.draw(&Map {
@@ -125,7 +142,14 @@ impl Widget for MapWidget<'_> {
 
         let challenges = self.process_challenges();
         let (x_bounds, y_bounds) = Self::calculate_bounds(&challenges);
-        self.draw_map("Challenges", &challenges, x_bounds, y_bounds, area, buf);
+        self.draw_map(
+            &self.t("Challenges"),
+            &challenges,
+            x_bounds,
+            y_bounds,
+            area,
+            buf,
+        );
     }
 }
 

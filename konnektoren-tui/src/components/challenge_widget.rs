@@ -1,4 +1,5 @@
 use konnektoren_core::challenges::{Challenge, ChallengeType};
+use konnektoren_platform::i18n::{I18nConfig, Language};
 use ratatui::{
     buffer::Buffer,
     layout::{Constraint, Direction, Layout, Rect},
@@ -14,6 +15,17 @@ pub struct ChallengeWidget<'a> {
     pub challenge: &'a Challenge,
     pub show_help: bool,
     pub current_question: usize,
+    pub i18n: &'a I18nConfig,
+    pub language: Option<&'a Language>,
+}
+
+impl ChallengeWidget<'_> {
+    fn t(&self, key: &str) -> String {
+        self.language.map_or_else(
+            || self.i18n.t(key),
+            |language| self.i18n.t_with_lang(key, language),
+        )
+    }
 }
 
 impl Widget for ChallengeWidget<'_> {
@@ -26,7 +38,8 @@ impl Widget for ChallengeWidget<'_> {
                     .split(area);
 
                 let title = format!(
-                    " Question ({}/{}) ",
+                    " {} ({}/{}) ",
+                    self.t("Question"),
                     self.current_question + 1,
                     self.challenge.challenge_config.tasks
                 );
@@ -42,7 +55,7 @@ impl Widget for ChallengeWidget<'_> {
                     }
                     Text::from(lines)
                 } else {
-                    Text::from(Line::from("Question not found").red())
+                    Text::from(Line::from(self.t("Question not found")).red())
                 };
 
                 let panels = Layout::default()
@@ -55,12 +68,12 @@ impl Widget for ChallengeWidget<'_> {
                     .block(block)
                     .render(layout[0], buf);
 
-                OptionsWidget::new(self.challenge).render(panels[0], buf);
-                ResultsWidget::new(self.challenge).render(panels[1], buf);
+                OptionsWidget::new(self.challenge, self.i18n, self.language).render(panels[0], buf);
+                ResultsWidget::new(self.challenge, self.i18n, self.language).render(panels[1], buf);
             }
             _ => {
-                Paragraph::new("Unsupported challenge type")
-                    .block(Block::bordered().title(" Challenge "))
+                Paragraph::new(self.t("Unsupported challenge type"))
+                    .block(Block::bordered().title(format!(" {} ", self.t("Challenge"))))
                     .render(area, buf);
             }
         }

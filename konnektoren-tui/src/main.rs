@@ -17,20 +17,25 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let session = {
         #[cfg(feature = "cli")]
         {
-            Cli::parse().load_session()?
+            let cli = Cli::parse();
+            let language = cli.language().map(str::to_string);
+            (cli.load_session()?, language)
         }
 
         #[cfg(not(feature = "cli"))]
         {
-            load_session_from_env()?
+            (load_session_from_env()?, None)
         }
     };
 
-    let mut app = if let Some(session) = session {
+    let mut app = if let Some(session) = session.0 {
         App::with_session(session)
     } else {
         App::new()
     };
+    if let Some(language) = session.1 {
+        app.set_language(language);
+    }
     let mut terminal = init()?;
     app.run(&mut terminal)?;
     restore()?;

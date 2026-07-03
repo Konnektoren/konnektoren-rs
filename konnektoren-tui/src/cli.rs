@@ -7,6 +7,8 @@ use crate::manifest_assets::{
     MANIFEST_ENV_VAR, ManifestSessionLoader, ManifestSource, Result as ManifestResult,
 };
 
+pub const LANG_ENV_VAR: &str = "KONNEKTOREN_LANG";
+
 #[derive(Debug, Clone, Parser, PartialEq, Eq)]
 #[command(
     name = "konnektoren-tui",
@@ -21,6 +23,14 @@ pub struct Cli {
         help = "Path to a Konnektoren manifest YAML file"
     )]
     pub manifest: Option<PathBuf>,
+
+    #[arg(
+        long,
+        env = LANG_ENV_VAR,
+        value_name = "LANG",
+        help = "Language code to use for the TUI session"
+    )]
+    pub lang: Option<String>,
 }
 
 impl Cli {
@@ -30,8 +40,12 @@ impl Cli {
 
     pub fn load_session(&self) -> ManifestResult<Option<Session>> {
         self.manifest_source()
-            .map(|source| ManifestSessionLoader.load(&source))
+            .map(|source| ManifestSessionLoader.load_with_language(&source, self.lang.as_deref()))
             .transpose()
+    }
+
+    pub fn language(&self) -> Option<&str> {
+        self.lang.as_deref()
     }
 }
 
@@ -42,10 +56,12 @@ mod tests {
 
     #[test]
     fn parses_manifest_argument() -> std::result::Result<(), String> {
-        let cli = Cli::try_parse_from(["konnektoren-tui", "--manifest", "game.yml"])
-            .map_err(|err| err.to_string())?;
+        let cli =
+            Cli::try_parse_from(["konnektoren-tui", "--manifest", "game.yml", "--lang", "de"])
+                .map_err(|err| err.to_string())?;
 
         assert_eq!(cli.manifest, Some(PathBuf::from("game.yml")));
+        assert_eq!(cli.lang, Some("de".to_string()));
         Ok(())
     }
 
@@ -55,5 +71,7 @@ mod tests {
 
         assert!(help.contains("--manifest <FILE>"));
         assert!(help.contains("Path to a Konnektoren manifest YAML file"));
+        assert!(help.contains("--lang <LANG>"));
+        assert!(help.contains("Language code to use for the TUI session"));
     }
 }

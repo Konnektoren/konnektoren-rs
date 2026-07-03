@@ -2,6 +2,7 @@ use konnektoren_core::{
     challenges::{Challenge, ChallengeConfig, Performance, Timed},
     game::GameError,
 };
+use konnektoren_platform::i18n::{I18nConfig, Language};
 use ratatui::{
     buffer::Buffer,
     layout::Rect,
@@ -16,15 +17,19 @@ pub struct ChallengeDebugInfo<'a> {
     created: std::result::Result<&'a Challenge, &'a GameError>,
     active: Option<&'a Challenge>,
     scroll: u16,
+    i18n: &'a I18nConfig,
+    language: Option<&'a Language>,
 }
 
 impl<'a> ChallengeDebugInfo<'a> {
-    pub const fn new(
+    pub fn new(
         config: &'a ChallengeConfig,
         selected_index: usize,
         created: std::result::Result<&'a Challenge, &'a GameError>,
         active: Option<&'a Challenge>,
         scroll: u16,
+        i18n: &'a I18nConfig,
+        language: Option<&'a Language>,
     ) -> Self {
         Self {
             config,
@@ -32,14 +37,23 @@ impl<'a> ChallengeDebugInfo<'a> {
             created,
             active,
             scroll,
+            i18n,
+            language,
         }
+    }
+
+    fn t(&self, key: &str) -> String {
+        self.language.map_or_else(
+            || self.i18n.t(key),
+            |language| self.i18n.t_with_lang(key, language),
+        )
     }
 }
 
 impl Widget for ChallengeDebugInfo<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
         Paragraph::new(self.lines())
-            .block(Block::bordered().title(" Challenge Debug Info "))
+            .block(Block::bordered().title(format!(" {} ", self.t("Challenge Debug Info"))))
             .scroll((self.scroll, 0))
             .wrap(Wrap { trim: false })
             .render(area, buf);
@@ -49,7 +63,7 @@ impl Widget for ChallengeDebugInfo<'_> {
 impl ChallengeDebugInfo<'_> {
     fn lines(&self) -> Text<'static> {
         let mut lines = vec![
-            Line::from("Config".bold()),
+            Line::from(self.t("Config").bold()),
             Line::from(format!("index: {}", self.selected_index)),
             Line::from(format!("id: {}", self.config.id)),
             Line::from(format!("name: {}", self.config.name)),
@@ -71,12 +85,12 @@ impl ChallengeDebugInfo<'_> {
                 self.config.icon.as_deref().unwrap_or("-")
             )),
             Line::from(""),
-            Line::from("Asset validation".bold()),
+            Line::from(self.t("Asset validation").bold()),
         ];
 
         match self.created {
             Ok(challenge) => {
-                lines.push(Line::from("status: ok".green()));
+                lines.push(Line::from(format!("status: {}", self.t("Ok")).green()));
                 lines.push(Line::from(format!(
                     "challenge type id: {}",
                     challenge.challenge_type.id()
@@ -85,21 +99,27 @@ impl ChallengeDebugInfo<'_> {
                     "challenge type name: {}",
                     challenge.challenge_type.name()
                 )));
-                push_yaml(&mut lines, "challenge type yaml", &challenge.challenge_type);
                 push_yaml(
                     &mut lines,
-                    "initial result yaml",
+                    self.t("Challenge type yaml"),
+                    &challenge.challenge_type,
+                );
+                push_yaml(
+                    &mut lines,
+                    self.t("Initial result yaml"),
                     &challenge.challenge_result,
                 );
             }
             Err(err) => {
-                lines.push(Line::from("status: failed".red().bold()));
+                lines.push(Line::from(
+                    format!("status: {}", self.t("Failed")).red().bold(),
+                ));
                 lines.push(Line::from(format!("error: {err}")));
             }
         }
 
         lines.push(Line::from(""));
-        lines.push(Line::from("Active runtime".bold()));
+        lines.push(Line::from(self.t("Active runtime").bold()));
         if let Some(challenge) = self.active {
             lines.push(Line::from(format!("active id: {}", challenge.get_id())));
             lines.push(Line::from(format!("solved: {}", challenge.solved())));
@@ -119,17 +139,25 @@ impl ChallengeDebugInfo<'_> {
                     .map(|elapsed| elapsed.num_seconds().to_string())
                     .unwrap_or_else(|| "-".to_string())
             )));
-            push_yaml(&mut lines, "config yaml", &challenge.challenge_config);
-            push_yaml(&mut lines, "result yaml", &challenge.challenge_result);
+            push_yaml(
+                &mut lines,
+                self.t("Config yaml"),
+                &challenge.challenge_config,
+            );
+            push_yaml(
+                &mut lines,
+                self.t("Result yaml"),
+                &challenge.challenge_result,
+            );
         } else {
-            lines.push(Line::from("not the active challenge"));
+            lines.push(Line::from(self.t("Not the active challenge")));
         }
 
         Text::from(lines)
     }
 }
 
-fn push_yaml<T>(lines: &mut Vec<Line<'static>>, title: &str, value: &T)
+fn push_yaml<T>(lines: &mut Vec<Line<'static>>, title: String, value: &T)
 where
     T: serde::Serialize,
 {
