@@ -1,14 +1,17 @@
 use konnektoren_core::game::GamePath;
+use konnektoren_platform::i18n::{I18nConfig, Language};
 use ratatui::{
     prelude::*,
     style::Styled,
     symbols::Marker,
-    widgets::{Block, canvas::Line, canvas::*},
+    widgets::{Block, Widget, canvas::Line, canvas::*},
 };
 
 pub struct MapWidget<'a> {
     current_challenge: usize,
     path: &'a GamePath,
+    i18n: &'a I18nConfig,
+    language: Option<&'a Language>,
 }
 
 impl MapWidget<'_> {
@@ -16,22 +19,22 @@ impl MapWidget<'_> {
         let x_min = challenges
             .iter()
             .map(|(_, x, _)| *x)
-            .min_by(|a, b| a.partial_cmp(b).unwrap())
+            .min_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal))
             .unwrap_or(0.0);
         let x_max = challenges
             .iter()
             .map(|(_, x, _)| *x)
-            .max_by(|a, b| a.partial_cmp(b).unwrap())
+            .max_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal))
             .unwrap_or(0.0);
         let y_min = challenges
             .iter()
             .map(|(_, _, y)| *y)
-            .min_by(|a, b| a.partial_cmp(b).unwrap())
+            .min_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal))
             .unwrap_or(0.0);
         let y_max = challenges
             .iter()
             .map(|(_, _, y)| *y)
-            .max_by(|a, b| a.partial_cmp(b).unwrap())
+            .max_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal))
             .unwrap_or(0.0);
 
         ([x_min - 10.0, x_max + 10.0], [y_min - 10.0, y_max + 10.0])
@@ -39,11 +42,25 @@ impl MapWidget<'_> {
 }
 
 impl<'a> MapWidget<'a> {
-    pub fn new(path: &'a GamePath, current_challenge: usize) -> Self {
+    pub fn new(
+        path: &'a GamePath,
+        current_challenge: usize,
+        i18n: &'a I18nConfig,
+        language: Option<&'a Language>,
+    ) -> Self {
         MapWidget {
             path,
             current_challenge,
+            i18n,
+            language,
         }
+    }
+
+    fn t(&self, key: &str) -> String {
+        self.language.map_or_else(
+            || self.i18n.t(key),
+            |language| self.i18n.t_with_lang(key, language),
+        )
     }
 
     fn process_challenges(&self) -> Vec<(String, f64, f64)> {
@@ -83,7 +100,7 @@ impl<'a> MapWidget<'a> {
         area: Rect,
         buf: &mut Buffer,
     ) {
-        let canvas = Canvas::default()
+        Canvas::default()
             .block(Block::bordered().title(title))
             .marker(Marker::Braille)
             .paint(|ctx| {
@@ -103,16 +120,15 @@ impl<'a> MapWidget<'a> {
                 }
             })
             .x_bounds(x_bounds)
-            .y_bounds(y_bounds);
-
-        canvas.render(area, buf);
+            .y_bounds(y_bounds)
+            .render(area, buf);
     }
 }
 
 impl Widget for MapWidget<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        let canvas = Canvas::default()
-            .block(Block::bordered().title("World"))
+        Canvas::default()
+            .block(Block::bordered().title(self.t("World")))
             .marker(Marker::Braille)
             .paint(|ctx| {
                 ctx.draw(&Map {
@@ -121,13 +137,19 @@ impl Widget for MapWidget<'_> {
                 });
             })
             .x_bounds([-180.0, 180.0])
-            .y_bounds([-90.0, 90.0]);
-
-        canvas.render(area, buf);
+            .y_bounds([-90.0, 90.0])
+            .render(area, buf);
 
         let challenges = self.process_challenges();
         let (x_bounds, y_bounds) = Self::calculate_bounds(&challenges);
-        self.draw_map("Challenges", &challenges, x_bounds, y_bounds, area, buf);
+        self.draw_map(
+            &self.t("Challenges"),
+            &challenges,
+            x_bounds,
+            y_bounds,
+            area,
+            buf,
+        );
     }
 }
 

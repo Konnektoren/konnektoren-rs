@@ -22,7 +22,7 @@ pub struct Vocabulary {
 
 impl Default for Vocabulary {
     fn default() -> Self {
-        let data = include_str!("../../../assets/vocabulary_default.yml");
+        let data = include_str!("../../../../assets/vocabulary_default.yml");
         serde_yaml::from_str(data).unwrap()
     }
 }

@@ -319,6 +319,6 @@ domain:
         );
         // i18n defaults were seeded even though yaml didn't set them
         assert_eq!(manifest.ext.i18n.default_language, "en");
-        assert_eq!(manifest.ext.i18n.path, "assets/i18n");
+        assert_eq!(manifest.ext.i18n.path, "i18n");
     }
 }

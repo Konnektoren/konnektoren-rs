@@ -95,7 +95,7 @@ impl Dialog {
 
 impl Default for Dialog {
     fn default() -> Self {
-        let data = include_str!("../../../assets/dialog_begruessung.yml");
+        let data = include_str!("../../../../assets/dialog_begruessung.yml");
         // The asset uses the `!dialog` YAML tag for ChallengeType dispatch;
         // serde_yaml ignores unknown tags when deserializing into a plain struct.
         serde_yaml::from_str(data).unwrap()

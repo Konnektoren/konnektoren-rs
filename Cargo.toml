@@ -3,6 +3,7 @@ resolver = "3"
 
 members = [
     "konnektoren-core",
+    "konnektoren-page",
     "konnektoren-platform",
     "konnektoren-tests",
     "konnektoren-tui",
@@ -77,6 +78,8 @@ tokio = "1"
 cucumber = "0.22"
 
 # TUI dependencies
+clap = { version = "4", features = ["derive", "env"] }
 crossterm = "0.29"
 ratatui = { version = "0.30", default-features = false }
+ratzilla = "0.3"
 russh = "0.59"

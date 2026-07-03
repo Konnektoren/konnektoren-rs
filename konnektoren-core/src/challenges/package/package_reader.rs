@@ -68,7 +68,7 @@ mod tests {
     #[test]
     fn test_package_reader() {
         let _ = tracing_subscriber::fmt::try_init();
-        let package_data = include_bytes!("../../../assets/articles-pkg.zip");
+        let package_data = include_bytes!("../../../../assets/articles-pkg.zip");
         let package = PackageReader::read(package_data).unwrap();
 
         assert_eq!(package.files.len(), 5);

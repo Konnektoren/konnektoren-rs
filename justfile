@@ -38,6 +38,12 @@ doc:
 docs-build:
     cd docs && asciidoctor -r asciidoctor-diagram -o index.html -a imagesdir=images -a sourcedir=src README.adoc
 
+page-build:
+    cd konnektoren-page && NO_COLOR=false trunk build --release --dist ../target/konnektoren-page
+
+page-serve:
+    cd konnektoren-page && NO_COLOR=false trunk serve
+
 # Documentation PDF
 docs-pdf:
     cd docs && asciidoctor-pdf -r asciidoctor-diagram -o konnektoren-docs.pdf -a imagesdir=images -a sourcedir=src README.adoc
@@ -86,8 +92,11 @@ setup:
 # Pre-commit checks
 pre-commit: lint test
 
-tui:
-    cargo run -p konnektoren-tui
+tui +ARGS="":
+    cargo run -p konnektoren-tui -- {{ ARGS }}
 
-tui-ssh:
-    RUST_LOG=info cargo run -p konnektoren-tui --bin konnektoren-tui-ssh --features="ssh"
+cli +ARGS="":
+    cargo run -p konnektoren-tui --all-features -- {{ ARGS }}
+
+tui-ssh +ARGS="":
+    RUST_LOG=info cargo run -p konnektoren-tui --bin konnektoren-tui-ssh --features="ssh" -- {{ ARGS }}

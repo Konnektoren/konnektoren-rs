@@ -16,7 +16,7 @@ pub struct GamePath {
 
 impl Default for GamePath {
     fn default() -> Self {
-        let data = include_str!("../../assets/konnektoren_path.yml");
+        let data = include_str!("../../../assets/konnektoren_path.yml");
         serde_yaml::from_str(data).unwrap()
     }
 }

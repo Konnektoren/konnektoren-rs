@@ -1,10 +1,9 @@
 mod app;
-mod challenge_tabs;
-mod challenge_widget;
+#[cfg(feature = "cli")]
+mod cli;
+mod components;
 mod error;
-mod map_widget;
-mod options_widget;
-mod results_widget;
+mod manifest_assets;
 
 #[cfg(feature = "crossterm")]
 mod tui;
@@ -13,7 +12,15 @@ mod tui;
 pub mod ssh_server;
 
 pub mod prelude {
-    pub use crate::app::App;
+    pub use crate::app::{App, Key};
+
+    #[cfg(feature = "cli")]
+    pub use crate::cli::Cli;
+
+    pub use crate::manifest_assets::{
+        MANIFEST_ENV_VAR, ManifestSessionLoader, ManifestSource, ManifestSourceResolver,
+        load_session_from_env,
+    };
 
     #[cfg(feature = "crossterm")]
     pub use crate::tui::{Tui, init, restore};

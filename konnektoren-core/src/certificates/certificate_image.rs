@@ -24,10 +24,10 @@ const SMALL_FONT_SIZE: f32 = 18.0;
 
 lazy_static! {
     static ref TITLE_FONT: FontRef<'static> =
-        FontRef::try_from_slice(include_bytes!("../../assets/Montserrat-Bold.ttf"))
+        FontRef::try_from_slice(include_bytes!("../../../assets/Montserrat-Bold.ttf"))
             .expect("Failed to load title font");
     static ref BODY_FONT: FontRef<'static> =
-        FontRef::try_from_slice(include_bytes!("../../assets/Lora-Regular.ttf"))
+        FontRef::try_from_slice(include_bytes!("../../../assets/Lora-Regular.ttf"))
             .expect("Failed to load body font");
 }
 
@@ -83,7 +83,7 @@ pub fn create_certificate(
     );
 
     // Load and draw logo
-    let logo_bytes = include_bytes!("../../assets/favicon.png");
+    let logo_bytes = include_bytes!("../../../assets/favicon.png");
     let logo_image = ImageReader::new(Cursor::new(logo_bytes))
         .with_guessed_format()
         .map_err(|e| {

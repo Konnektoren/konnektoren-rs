@@ -14,6 +14,7 @@ use tracing::info;
 
 use crate::app::App;
 use crate::error::{Error, Result};
+use crate::manifest_assets::{ManifestSessionLoader, ManifestSource};
 
 type SshTerminal = Terminal<CrosstermBackend<TerminalHandle>>;
 
@@ -47,12 +48,8 @@ impl std::io::Write for TerminalHandle {
     }
 
     fn flush(&mut self) -> std::io::Result<()> {
-        let result = self.sender.send(self.sink.clone());
-        if result.is_err() {
-            return Err(std::io::Error::new(
-                std::io::ErrorKind::BrokenPipe,
-                result.unwrap_err(),
-            ));
+        if let Err(err) = self.sender.send(self.sink.clone()) {
+            return Err(std::io::Error::new(std::io::ErrorKind::BrokenPipe, err));
         }
 
         self.sink.clear();
@@ -64,6 +61,7 @@ impl std::io::Write for TerminalHandle {
 pub struct SshServer {
     clients: Arc<Mutex<HashMap<usize, (SshTerminal, App)>>>,
     id: usize,
+    manifest_source: Option<ManifestSource>,
 }
 
 impl SshServer {
@@ -71,6 +69,15 @@ impl SshServer {
         Self {
             clients: Arc::new(Mutex::new(HashMap::new())),
             id: 0,
+            manifest_source: None,
+        }
+    }
+
+    pub fn with_manifest_source(manifest_source: ManifestSource) -> Self {
+        Self {
+            clients: Arc::new(Mutex::new(HashMap::new())),
+            id: 0,
+            manifest_source: Some(manifest_source),
         }
     }
 
@@ -111,9 +118,21 @@ impl SshServer {
 
     pub async fn run(addr: &str, port: u16) -> Result<()> {
         let mut server = Self::new();
+        server.run_inner(addr, port).await
+    }
 
+    pub async fn run_with_manifest_source(
+        addr: &str,
+        port: u16,
+        manifest_source: ManifestSource,
+    ) -> Result<()> {
+        let mut server = Self::with_manifest_source(manifest_source);
+        server.run_inner(addr, port).await
+    }
+
+    async fn run_inner(&mut self, addr: &str, port: u16) -> Result<()> {
         // Start a background task to handle periodic updates if needed
-        let clients = server.clients.clone();
+        let clients = self.clients.clone();
         tokio::spawn(async move {
             loop {
                 tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
@@ -137,10 +156,24 @@ impl SshServer {
         };
 
         info!("Starting SSH server on {}:{}", addr, port);
-        server
-            .run_on_address(Arc::new(config), (addr, port))
+        self.run_on_address(Arc::new(config), (addr, port))
             .await
-            .map_err(|e| Error::UiError(format!("SSH server error: {}", e)))
+            .map_err(|e| Error::Ui(format!("SSH server error: {}", e)))
+    }
+
+    fn new_app(&self) -> Result<App> {
+        self.manifest_source
+            .as_ref()
+            .map(|source| ManifestSessionLoader.load(source).map(App::with_session))
+            .transpose()
+            .map(|app| app.unwrap_or_else(App::new))
+            .map_err(Error::ManifestAssets)
+    }
+}
+
+impl Default for SshServer {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -172,7 +205,7 @@ impl Handler for SshServer {
         };
 
         let terminal = Terminal::with_options(backend, options)?;
-        let app = App::new();
+        let app = self.new_app()?;
 
         let mut clients = self.clients.lock().await;
         clients.insert(self.id, (terminal, app));
@@ -245,6 +278,32 @@ impl Handler for SshServer {
                         }
                         b'm' => {
                             app.toggle_map();
+                            should_redraw = true;
+                        }
+                        b'c' => {
+                            app.show_challenge_page();
+                            should_redraw = true;
+                        }
+                        b'g' => {
+                            app.show_challenge_list();
+                            should_redraw = true;
+                        }
+                        b'i' => {
+                            app.show_challenge_info();
+                            should_redraw = true;
+                        }
+                        b'j' => {
+                            app.select_next_challenge_in_list();
+                            app.scroll_info_down(1);
+                            should_redraw = true;
+                        }
+                        b'k' => {
+                            app.select_previous_challenge_in_list();
+                            app.scroll_info_up(1);
+                            should_redraw = true;
+                        }
+                        b'\r' | b'\n' => {
+                            let _ = app.open_selected_challenge();
                             should_redraw = true;
                         }
                         b'h' => {

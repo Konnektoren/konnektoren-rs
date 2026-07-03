@@ -24,10 +24,9 @@ impl Widget for ChallengeTabs<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let titles = self.game_path.challenge_ids();
         let highlight_style = (Color::default(), Color::Red);
-        let selected_tab_index = self.selected_tab_index;
         Tabs::new(titles)
             .highlight_style(highlight_style)
-            .select(selected_tab_index)
+            .select(self.selected_tab_index)
             .padding("", "")
             .divider(" ")
             .render(area, buf);
