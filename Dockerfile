@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy workspace manifest
-COPY Cargo.toml Cargo.lock ./
+COPY Cargo.toml ./
 
 # Copy all package manifests for dependency caching
 COPY konnektoren-core/Cargo.toml ./konnektoren-core/Cargo.toml
