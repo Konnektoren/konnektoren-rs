@@ -38,12 +38,13 @@ jobs:
         run: cargo install cargo-tarpaulin
 
       # Run tests (optional, since tarpaulin runs tests for coverage)
+      # konnektoren-page is wasm32-only and can't be built/tested by this native runner.
       - name: Run tests
-        run: cargo test --workspace --all-features
+        run: cargo test --workspace --exclude konnektoren-page --all-features
 
       # Run coverage for all workspace members
       - name: Run coverage
-        run: cargo tarpaulin --workspace --all-features --ignore-tests --out Xml
+        run: cargo tarpaulin --workspace --exclude konnektoren-page --all-features --ignore-tests --out Xml
 
       # Upload coverage report as artifact (old action)
       - name: Upload coverage report
