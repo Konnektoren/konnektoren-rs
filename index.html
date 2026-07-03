@@ -16,8 +16,8 @@
     />
     
 <script type="module">
-import init, * as bindings from '/konnektoren-rs/konnektoren-page-3d71b0c05f1871b1.js';
-const wasm = await init({ module_or_path: '/konnektoren-rs/konnektoren-page-3d71b0c05f1871b1_bg.wasm' });
+import init, * as bindings from '/konnektoren-rs/konnektoren-page-4c52ba230197d6e3.js';
+const wasm = await init({ module_or_path: '/konnektoren-rs/konnektoren-page-4c52ba230197d6e3_bg.wasm' });
 
 
 window.wasmBindings = bindings;
@@ -45,11 +45,35 @@ dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
       body {
         min-height: 100vh;
         display: flex;
+        flex-direction: column;
         align-items: stretch;
         justify-content: center;
         background:
           radial-gradient(circle at 20% 10%, rgba(70, 126, 92, 0.2), transparent 28rem),
           linear-gradient(135deg, #0f1411 0%, #18221c 48%, #0b1114 100%);
+      }
+
+      .topbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        justify-content: center;
+        padding: 0.75rem;
+      }
+
+      .topbar__link {
+        color: #e8f1ea;
+        text-decoration: none;
+        border: 1px solid #467e5c;
+        border-radius: 0.25rem;
+        padding: 0.4rem 0.9rem;
+        font-size: 0.9rem;
+        background: rgba(70, 126, 92, 0.12);
+      }
+
+      .topbar__link:hover,
+      .topbar__link:active {
+        background: rgba(70, 126, 92, 0.28);
       }
 
       pre {
@@ -62,8 +86,34 @@ dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
       canvas,
       pre {
         width: 100%;
+        flex: 1;
+        min-height: 0;
       }
     </style>
-  <link rel="modulepreload" href="/konnektoren-rs/konnektoren-page-3d71b0c05f1871b1.js" crossorigin="anonymous" integrity="sha384-kTFFWtHTreXpBhTpFFK5uIQwMwiKw7ICIo90FzQoQwDPDgujk2ROmAP1BOtLDb2m"><link rel="preload" href="/konnektoren-rs/konnektoren-page-3d71b0c05f1871b1_bg.wasm" crossorigin="anonymous" integrity="sha384-htAIbTVJiaNTNGlEsypiC5HE99clLFRPOpou2b/BVT8/EzqwEzckLG1hH2yNinYr" as="fetch" type="application/wasm"></head>
-  <body></body>
+  <link rel="modulepreload" href="/konnektoren-rs/konnektoren-page-4c52ba230197d6e3.js" crossorigin="anonymous" integrity="sha384-kTFFWtHTreXpBhTpFFK5uIQwMwiKw7ICIo90FzQoQwDPDgujk2ROmAP1BOtLDb2m"><link rel="preload" href="/konnektoren-rs/konnektoren-page-4c52ba230197d6e3_bg.wasm" crossorigin="anonymous" integrity="sha384-bS3RiNOb/5Y0k9HCX+vJLGuQ35s8KfB9bCkQlJBRJZjPx7yf+zrt3DU0Q6kFdpJw" as="fetch" type="application/wasm"></head>
+  <body>
+    <nav class="topbar">
+      <a
+        class="topbar__link"
+        href="https://github.com/konnektoren/konnektoren-rs"
+        target="_blank"
+        rel="noopener"
+        >GitHub</a
+      >
+      <a
+        class="topbar__link"
+        href="https://konnektoren.github.io/konnektoren-rs/doc/konnektoren_core/"
+        target="_blank"
+        rel="noopener"
+        >Crate docs</a
+      >
+      <a
+        class="topbar__link"
+        href="https://konnektoren.github.io/konnektoren-rs/docs/"
+        target="_blank"
+        rel="noopener"
+        >Project docs</a
+      >
+    </nav>
+  </body>
 </html>
