@@ -9,8 +9,14 @@ description = "Ratzilla-powered GitHub Pages index for konnektoren-rs"
 
 [dependencies]
 ratzilla = { workspace = true }
+konnektoren-tui = { path = "../konnektoren-tui", default-features = false }
 # ratzilla enables ratatui's "layout-cache" feature, which needs a critical-section
 # impl registered. Without this, the wasm binary emits raw imports
 # (`_critical_section_1_0_acquire`/`_release`) from module "env" that the browser
 # can't resolve. The "std" feature auto-registers a std::sync::Mutex-based impl.
 critical-section = { version = "1", features = ["std"] }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+# konnektoren-core (via konnektoren-tui) uses uuid, which needs an explicit
+# randomness source on wasm32-unknown-unknown.
+uuid = { workspace = true, features = ["js"] }
