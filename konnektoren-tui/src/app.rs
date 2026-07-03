@@ -18,8 +18,9 @@ use konnektoren_core::{
     session::Session,
 };
 use konnektoren_platform::i18n::{I18nAssets, I18nConfig, JsonTranslationAsset, Language};
+#[cfg(feature = "crossterm")]
+use ratatui::Frame;
 use ratatui::{
-    Frame,
     buffer::Buffer,
     layout::{Constraint, Layout, Margin, Rect},
     style::Stylize,
@@ -27,6 +28,48 @@ use ratatui::{
     text::Line,
     widgets::{Block, Borders, Paragraph, StatefulWidget, Widget},
 };
+
+/// A backend-agnostic key, decoupled from any specific terminal or input crate.
+///
+/// Native (crossterm) input is mapped to this type internally; other frontends
+/// (e.g. a web-based terminal) can map their own key events to it and drive
+/// [`App`] via [`App::handle_key`] without this crate depending on their input crate.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Key {
+    Char(char),
+    Up,
+    Down,
+    Left,
+    Right,
+    Tab,
+    BackTab,
+    Enter,
+    Esc,
+    PageUp,
+    PageDown,
+    Home,
+}
+
+#[cfg(feature = "crossterm")]
+impl Key {
+    fn from_crossterm(code: KeyCode) -> Option<Self> {
+        Some(match code {
+            KeyCode::Char(c) => Key::Char(c),
+            KeyCode::Up => Key::Up,
+            KeyCode::Down => Key::Down,
+            KeyCode::Left => Key::Left,
+            KeyCode::Right => Key::Right,
+            KeyCode::Tab => Key::Tab,
+            KeyCode::BackTab => Key::BackTab,
+            KeyCode::Enter => Key::Enter,
+            KeyCode::Esc => Key::Esc,
+            KeyCode::PageUp => Key::PageUp,
+            KeyCode::PageDown => Key::PageDown,
+            KeyCode::Home => Key::Home,
+            _ => return None,
+        })
+    }
+}
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 enum AppPage {
@@ -115,6 +158,7 @@ impl App {
         Ok(())
     }
 
+    #[cfg(feature = "crossterm")]
     fn render_frame(&self, frame: &mut Frame) {
         frame.render_widget(self, frame.area());
     }
@@ -249,57 +293,65 @@ impl App {
             .get(self.session.game_state.current_game_path)
     }
 
-    #[cfg(feature = "crossterm")]
-    fn handle_key_event(&mut self, key_event: KeyEvent) -> Result<()> {
-        match key_event.code {
-            KeyCode::Char('q') | KeyCode::Esc => self.exit(),
-            KeyCode::Char('c') => self.show_challenge_page(),
-            KeyCode::Char('g') => self.show_challenge_list(),
-            KeyCode::Char('i') => self.show_challenge_info(),
-            KeyCode::Char('m') => self.toggle_map(),
-            KeyCode::Up | KeyCode::Char('k') if self.page == AppPage::Info => {
+    /// Handle a backend-agnostic key. See [`Key`].
+    pub fn handle_key(&mut self, key: Key) -> Result<()> {
+        match key {
+            Key::Char('q') | Key::Esc => self.exit(),
+            Key::Char('c') => self.show_challenge_page(),
+            Key::Char('g') => self.show_challenge_list(),
+            Key::Char('i') => self.show_challenge_info(),
+            Key::Char('m') => self.toggle_map(),
+            Key::Up | Key::Char('k') if self.page == AppPage::Info => {
                 self.scroll_info_up(1);
             }
-            KeyCode::Down | KeyCode::Char('j') if self.page == AppPage::Info => {
+            Key::Down | Key::Char('j') if self.page == AppPage::Info => {
                 self.scroll_info_down(1);
             }
-            KeyCode::PageUp if self.page == AppPage::Info => {
+            Key::PageUp if self.page == AppPage::Info => {
                 self.scroll_info_up(10);
             }
-            KeyCode::PageDown if self.page == AppPage::Info => {
+            Key::PageDown if self.page == AppPage::Info => {
                 self.scroll_info_down(10);
             }
-            KeyCode::Home if self.page == AppPage::Info => {
+            Key::Home if self.page == AppPage::Info => {
                 self.reset_info_scroll();
             }
-            KeyCode::Up | KeyCode::Char('k') if self.page == AppPage::Challenges => {
+            Key::Up | Key::Char('k') if self.page == AppPage::Challenges => {
                 self.select_previous_challenge_in_list();
             }
-            KeyCode::Down | KeyCode::Char('j') if self.page == AppPage::Challenges => {
+            Key::Down | Key::Char('j') if self.page == AppPage::Challenges => {
                 self.select_next_challenge_in_list();
             }
-            KeyCode::Enter if self.page == AppPage::Challenges => self.open_selected_challenge()?,
-            KeyCode::Left | KeyCode::Char('h') => self.previous_question(),
-            KeyCode::Right | KeyCode::Char('l') => self.next_question(),
-            KeyCode::Tab => self.next_challenge(),
-            KeyCode::BackTab => self.previous_challenge(),
-            KeyCode::Char('0') => self.solve_option(0)?,
-            KeyCode::Char('1') => self.solve_option(1)?,
-            KeyCode::Char('2') => self.solve_option(2)?,
-            KeyCode::Char('3') => self.solve_option(3)?,
-            KeyCode::Char('4') => self.solve_option(4)?,
-            KeyCode::Char('5') => self.solve_option(5)?,
-            KeyCode::Char('6') => self.solve_option(6)?,
-            KeyCode::Char('7') => self.solve_option(7)?,
-            KeyCode::Char('8') => self.solve_option(8)?,
-            KeyCode::Char('9') => self.solve_option(9)?,
+            Key::Enter if self.page == AppPage::Challenges => self.open_selected_challenge()?,
+            Key::Left | Key::Char('h') => self.previous_question(),
+            Key::Right | Key::Char('l') => self.next_question(),
+            Key::Tab => self.next_challenge(),
+            Key::BackTab => self.previous_challenge(),
+            Key::Char('0') => self.solve_option(0)?,
+            Key::Char('1') => self.solve_option(1)?,
+            Key::Char('2') => self.solve_option(2)?,
+            Key::Char('3') => self.solve_option(3)?,
+            Key::Char('4') => self.solve_option(4)?,
+            Key::Char('5') => self.solve_option(5)?,
+            Key::Char('6') => self.solve_option(6)?,
+            Key::Char('7') => self.solve_option(7)?,
+            Key::Char('8') => self.solve_option(8)?,
+            Key::Char('9') => self.solve_option(9)?,
             _ => {}
         }
         Ok(())
     }
 
+    #[cfg(feature = "crossterm")]
+    fn handle_key_event(&mut self, key_event: KeyEvent) -> Result<()> {
+        let Some(key) = Key::from_crossterm(key_event.code) else {
+            return Ok(());
+        };
+        self.handle_key(key)
+    }
+
+    #[cfg(feature = "crossterm")]
     fn handle_events(&mut self) -> Result<()> {
-        #[cfg(feature = "crossterm")]
         match event::read().map_err(Error::Io)? {
             Event::Key(key_event) if key_event.kind == KeyEventKind::Press => {
                 if let Err(e) = self.handle_key_event(key_event) {

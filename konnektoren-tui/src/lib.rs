@@ -12,7 +12,7 @@ mod tui;
 pub mod ssh_server;
 
 pub mod prelude {
-    pub use crate::app::App;
+    pub use crate::app::{App, Key};
 
     #[cfg(feature = "cli")]
     pub use crate::cli::Cli;
