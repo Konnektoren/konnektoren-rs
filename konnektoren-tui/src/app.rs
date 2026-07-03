@@ -1,5 +1,8 @@
 use crate::{
-    components::{ChallengeList, ChallengeTabs, ChallengeWidget, MapWidget, PageTab, PageTabs},
+    components::{
+        ChallengeDebugInfo, ChallengeList, ChallengeTabs, ChallengeWidget, MapWidget, PageTab,
+        PageTabs,
+    },
     error::{Error, Result},
 };
 
@@ -30,6 +33,7 @@ enum AppPage {
     Challenge,
     Challenges,
     Map,
+    Info,
 }
 
 impl AppPage {
@@ -38,6 +42,7 @@ impl AppPage {
             Self::Challenge => PageTab::Challenge,
             Self::Challenges => PageTab::Challenges,
             Self::Map => PageTab::Map,
+            Self::Info => PageTab::Info,
         }
     }
 }
@@ -49,6 +54,7 @@ pub struct App {
     session: Session,
     page: AppPage,
     selected_challenge_index: usize,
+    info_scroll: u16,
     exit: bool,
 }
 
@@ -151,6 +157,14 @@ impl App {
         self.page = AppPage::Challenges;
     }
 
+    pub fn show_challenge_info(&mut self) {
+        if self.page != AppPage::Challenges {
+            self.selected_challenge_index = self.session.game_state.current_challenge_index;
+        }
+        self.info_scroll = 0;
+        self.page = AppPage::Info;
+    }
+
     pub fn select_next_challenge_in_list(&mut self) {
         let challenge_count = self
             .current_game_path()
@@ -159,6 +173,18 @@ impl App {
             self.selected_challenge_index =
                 (self.selected_challenge_index + 1).min(challenge_count - 1);
         }
+    }
+
+    pub fn scroll_info_down(&mut self, lines: u16) {
+        self.info_scroll = self.info_scroll.saturating_add(lines);
+    }
+
+    pub fn scroll_info_up(&mut self, lines: u16) {
+        self.info_scroll = self.info_scroll.saturating_sub(lines);
+    }
+
+    pub fn reset_info_scroll(&mut self) {
+        self.info_scroll = 0;
     }
 
     pub fn select_previous_challenge_in_list(&mut self) {
@@ -207,7 +233,23 @@ impl App {
             KeyCode::Char('q') | KeyCode::Esc => self.exit(),
             KeyCode::Char('c') => self.show_challenge_page(),
             KeyCode::Char('g') => self.show_challenge_list(),
+            KeyCode::Char('i') => self.show_challenge_info(),
             KeyCode::Char('m') => self.toggle_map(),
+            KeyCode::Up | KeyCode::Char('k') if self.page == AppPage::Info => {
+                self.scroll_info_up(1);
+            }
+            KeyCode::Down | KeyCode::Char('j') if self.page == AppPage::Info => {
+                self.scroll_info_down(1);
+            }
+            KeyCode::PageUp if self.page == AppPage::Info => {
+                self.scroll_info_up(10);
+            }
+            KeyCode::PageDown if self.page == AppPage::Info => {
+                self.scroll_info_down(10);
+            }
+            KeyCode::Home if self.page == AppPage::Info => {
+                self.reset_info_scroll();
+            }
             KeyCode::Up | KeyCode::Char('k') if self.page == AppPage::Challenges => {
                 self.select_previous_challenge_in_list();
             }
@@ -267,6 +309,8 @@ impl Widget for &App {
             "<G>".blue().bold(),
             " Play ".into(),
             "<C>".blue().bold(),
+            " Info ".into(),
+            "<I>".blue().bold(),
             " Quit ".into(),
             "<Q> ".blue().bold(),
         ]);
@@ -309,6 +353,24 @@ impl Widget for &App {
                     self.selected_challenge_index,
                 )
                 .render(content_area, buf, &mut state);
+            }
+            AppPage::Info => {
+                if let Some(config) = game_path.challenges.get(self.selected_challenge_index) {
+                    let created = self.session.game_state.game.create_challenge(&config.id);
+                    let active = (self.selected_challenge_index
+                        == self.session.game_state.current_challenge_index)
+                        .then_some(&self.session.game_state.challenge);
+                    ChallengeDebugInfo::new(
+                        config,
+                        self.selected_challenge_index,
+                        created.as_ref(),
+                        active,
+                        self.info_scroll,
+                    )
+                    .render(content_area, buf);
+                } else {
+                    Paragraph::new("No challenge selected").render(content_area, buf);
+                }
             }
             AppPage::Challenge => {
                 let vertical = Layout::vertical([Constraint::Length(1), Constraint::Min(0)]);
@@ -367,5 +429,41 @@ mod tests {
             .map(|path| path.challenges.len().saturating_sub(1))
             .unwrap_or_default();
         assert_eq!(app.selected_challenge_index, last_index);
+    }
+
+    #[test]
+    fn info_page_uses_current_challenge_outside_list() {
+        let mut app = App::new();
+        app.selected_challenge_index = 3;
+
+        app.show_challenge_info();
+
+        assert_eq!(app.page, AppPage::Info);
+        assert_eq!(
+            app.selected_challenge_index,
+            app.session.game_state.current_challenge_index
+        );
+    }
+
+    #[test]
+    fn info_page_preserves_list_selection() {
+        let mut app = App::new();
+        app.show_challenge_list();
+        app.select_next_challenge_in_list();
+
+        app.show_challenge_info();
+
+        assert_eq!(app.page, AppPage::Info);
+        assert_eq!(app.selected_challenge_index, 1);
+    }
+
+    #[test]
+    fn info_scroll_is_bounded_at_zero() {
+        let mut app = App::new();
+
+        app.scroll_info_down(3);
+        assert_eq!(app.info_scroll, 3);
+        app.scroll_info_up(10);
+        assert_eq!(app.info_scroll, 0);
     }
 }

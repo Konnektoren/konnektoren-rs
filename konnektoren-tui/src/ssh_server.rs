@@ -288,12 +288,18 @@ impl Handler for SshServer {
                             app.show_challenge_list();
                             should_redraw = true;
                         }
+                        b'i' => {
+                            app.show_challenge_info();
+                            should_redraw = true;
+                        }
                         b'j' => {
                             app.select_next_challenge_in_list();
+                            app.scroll_info_down(1);
                             should_redraw = true;
                         }
                         b'k' => {
                             app.select_previous_challenge_in_list();
+                            app.scroll_info_up(1);
                             should_redraw = true;
                         }
                         b'\r' | b'\n' => {

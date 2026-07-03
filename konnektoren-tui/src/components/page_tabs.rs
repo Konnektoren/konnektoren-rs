@@ -10,6 +10,7 @@ pub enum PageTab {
     Challenge,
     Challenges,
     Map,
+    Info,
 }
 
 impl PageTab {
@@ -18,6 +19,7 @@ impl PageTab {
             Self::Challenge => 0,
             Self::Challenges => 1,
             Self::Map => 2,
+            Self::Info => 3,
         }
     }
 }
@@ -34,7 +36,7 @@ impl PageTabs {
 
 impl Widget for PageTabs {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        Tabs::new(["Challenge", "Challenges", "Map"])
+        Tabs::new(["Challenge", "Challenges", "Map", "Info"])
             .highlight_style(Style::new().bg(Color::Blue).add_modifier(Modifier::BOLD))
             .select(self.selected.index())
             .padding(" ", " ")

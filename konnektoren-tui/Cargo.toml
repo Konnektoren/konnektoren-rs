@@ -26,6 +26,7 @@ crossterm = { workspace = true, optional = true }
 ratatui = { workspace = true, features = ["serde"] }
 konnektoren-core = { path = "../konnektoren-core", default-features = false }
 konnektoren-platform = { path = "../konnektoren-platform", default-features = false, features = ["manifest"] }
+serde = { workspace = true }
 serde_yaml = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
