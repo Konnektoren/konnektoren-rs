@@ -38,6 +38,12 @@ doc:
 docs-build:
     cd docs && asciidoctor -r asciidoctor-diagram -o index.html -a imagesdir=images -a sourcedir=src README.adoc
 
+page-build:
+    cd konnektoren-page && NO_COLOR=false trunk build --release --dist ../target/konnektoren-page
+
+page-serve:
+    cd konnektoren-page && NO_COLOR=false trunk serve
+
 # Documentation PDF
 docs-pdf:
     cd docs && asciidoctor-pdf -r asciidoctor-diagram -o konnektoren-docs.pdf -a imagesdir=images -a sourcedir=src README.adoc

@@ -1,0 +1,37 @@
+name: Root Page
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "*"
+
+jobs:
+  build_and_deploy_root_page:
+    name: Build and deploy Ratzilla root index
+    runs-on: ubuntu-24.04
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: wasm32-unknown-unknown
+          override: true
+
+      - name: Install Trunk
+        run: cargo install --locked trunk
+
+      - name: Build Ratzilla index
+        run: |
+          cd konnektoren-page
+          trunk build --release --dist ../page-dist --public-url /konnektoren-rs/
+
+      - name: Deploy Ratzilla index
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: ./page-dist
+          keep_files: true

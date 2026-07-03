@@ -14,6 +14,9 @@ This repository is a Rust workspace for the Konnektoren project, providing gramm
 - **konnektoren-platform**:
   Platform-specific utilities, internationalization (i18n), domain configuration, and asset management.
 
+- **konnektoren-page**:
+  Ratzilla-powered WebAssembly landing page for GitHub Pages, with a terminal-style index for project links.
+
 - **konnektoren-tests**:
   BDD and integration tests for the project, using Cucumber for feature-driven testing.
 
@@ -30,15 +33,32 @@ just build
 
 Documentation is available online:
 
-* [Project Docs](https://konnektoren.github.io/konnektoren-rs/docs/)
+* [Web TUI index](https://konnektoren.github.io/konnektoren-rs/)
+* [Project docs](https://konnektoren.github.io/konnektoren-rs/docs/)
+* [Cargo API docs](https://konnektoren.github.io/konnektoren-rs/doc/)
 * [konnektoren_core API](https://konnektoren.github.io/konnektoren-rs/doc/konnektoren_core/)
+* [GitHub repository](https://github.com/konnektoren/konnektoren-rs)
 
 ## Run
 
-Test Konnektoren Yew Components at https://konnektoren.github.io/konnektoren-rs/
+Open the Web TUI index at https://konnektoren.github.io/konnektoren-rs/.
+
+Serve the Web TUI locally:
 
 ```bash
-cargo run --package konnektoren-tui
+just page-serve
+```
+
+Build the Web TUI locally:
+
+```bash
+just page-build
+```
+
+Run the terminal TUI:
+
+```bash
+just tui
 ```
 
 ## Tools (`konnektoren-platform`)
@@ -121,6 +141,8 @@ This project uses a `Justfile` for simplified command execution. Here are some c
 *   **`just test`**: Runs all tests in the workspace.
 *   **`just lint`**: Runs the linter on the entire workspace.
 *   **`just doc`**: Generates documentation for the entire workspace.
+*   **`just page-build`**: Builds the Ratzilla Web TUI index.
+*   **`just page-serve`**: Serves the Ratzilla Web TUI index locally.
 *   **`just coverage`**: Generates code coverage reports for the entire workspace.
 *   **`just sbom`**: Generates SBOM.
 *   **`just changelog`**: Generate changelog.
