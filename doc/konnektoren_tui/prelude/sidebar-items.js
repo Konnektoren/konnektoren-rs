@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["init","restore"],"struct":["App"],"type":["Tui"]};
+window.SIDEBAR_ITEMS = {"constant":["MANIFEST_ENV_VAR"],"enum":["Key"],"fn":["init","load_session_from_env","restore"],"struct":["App","Cli","ManifestSessionLoader","ManifestSource","ManifestSourceResolver"],"type":["Tui"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["domain","i18n","prelude","tools"]};
+window.SIDEBAR_ITEMS = {"macro":["cargo_package","i18n_patterns","load_manifest","manifest_extensions","manifest_section"],"mod":["domain","i18n","manifest","prelude","tools"]};

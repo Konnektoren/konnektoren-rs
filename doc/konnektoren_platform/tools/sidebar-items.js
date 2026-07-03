@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["I18nReportError"],"struct":["I18nChecker","I18nHumanFormatter","I18nJsonFormatter","I18nReport","I18nYamlFormatter","LanguageStats"],"trait":["I18nReportFormatter"]};
+window.SIDEBAR_ITEMS = {"enum":["I18nReportError","SchemaFormat"],"mod":["manifest"],"struct":["ChallengeI18nChecker","ChallengeI18nReport","I18nChecker","I18nHumanFormatter","I18nJsonFormatter","I18nReport","I18nYamlFormatter","LanguageStats","SchemaExporter"],"trait":["I18nReportFormatter"]};
