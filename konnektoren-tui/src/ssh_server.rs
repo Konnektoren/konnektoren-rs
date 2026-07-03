@@ -103,8 +103,10 @@ impl SshServer {
 
         // Generate new key
         info!("Generating new SSH host key");
-        let key =
-            russh::keys::PrivateKey::random(&mut rand_core::OsRng, Algorithm::Ed25519).unwrap();
+        // rand_core 0.10 dropped the infallible `OsRng`; `SysRng` is fallible, so
+        // wrap it with `UnwrapErr` to get the `CryptoRng` impl `PrivateKey::random` needs.
+        let mut rng = russh::keys::ssh_key::rand_core::UnwrapErr(getrandom::SysRng);
+        let key = russh::keys::PrivateKey::random(&mut rng, Algorithm::Ed25519).unwrap();
 
         // Save the key
         if let Err(e) = key.write_openssh_file(Path::new(&key_path), Default::default()) {
@@ -194,8 +196,9 @@ impl Handler for SshServer {
     async fn channel_open_session(
         &mut self,
         channel: Channel<Msg>,
+        reply: ChannelOpenHandle,
         session: &mut Session,
-    ) -> std::result::Result<bool, Self::Error> {
+    ) -> std::result::Result<(), Self::Error> {
         let terminal_handle = TerminalHandle::start(session.handle(), channel.id()).await;
 
         let backend = CrosstermBackend::new(terminal_handle);
@@ -209,8 +212,11 @@ impl Handler for SshServer {
 
         let mut clients = self.clients.lock().await;
         clients.insert(self.id, (terminal, app));
+        drop(clients);
 
-        Ok(true)
+        reply.accept().await;
+
+        Ok(())
     }
 
     async fn auth_password(

@@ -80,6 +80,7 @@ cucumber = "0.22"
 # TUI dependencies
 clap = { version = "4", features = ["derive", "env"] }
 crossterm = "0.29"
+getrandom = "0.4"
 ratatui = { version = "0.30", default-features = false }
 ratzilla = "0.3"
-russh = "0.59"
+russh = "0.62"

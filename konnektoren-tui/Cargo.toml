@@ -18,7 +18,7 @@ required-features = ["ssh"]
 default = ["crossterm", "cli"]
 cli = ["dep:clap"]
 crossterm = ["dep:crossterm", "ratatui/crossterm"]
-ssh = ["dep:russh", "dep:tokio", "ratatui/crossterm", "rand_core", "anyhow"]
+ssh = ["dep:russh", "dep:tokio", "dep:getrandom", "ratatui/crossterm", "rand_core", "anyhow"]
 
 [dependencies]
 clap = { workspace = true, optional = true }
@@ -34,6 +34,7 @@ tracing-subscriber = { workspace = true }
 
 # SSH dependencies
 russh = { workspace = true, optional = true }
+getrandom = { workspace = true, optional = true }
 tokio = { workspace = true, features = ["full"], optional = true }
 anyhow = { workspace = true, optional = true }
 rand_core = { workspace = true, optional = true }
