@@ -24,7 +24,7 @@ pub struct Placeholder {
 
 impl Default for Placeholder {
     fn default() -> Self {
-        let data = include_str!("../../../assets/placeholder_default.yml");
+        let data = include_str!("../../../../assets/placeholder_default.yml");
         serde_yaml::from_str(data).unwrap()
     }
 }

@@ -31,7 +31,7 @@ pub struct Custom {
 
 impl Default for Custom {
     fn default() -> Self {
-        let data = include_str!("../../../assets/custom_default.yml");
+        let data = include_str!("../../../../assets/custom_default.yml");
         serde_yaml::from_str(data).unwrap()
     }
 }

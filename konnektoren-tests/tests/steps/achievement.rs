@@ -16,7 +16,7 @@ async fn the_user_earns_more_xp(world: &mut BddWorld, additional_xp: u32) {
     world.game.xp += additional_xp;
 
     // Re-evaluate achievements after XP change
-    let achievements_data = include_str!("../../../konnektoren-core/assets/achievements.yml");
+    let achievements_data = include_str!("../../../assets/achievements.yml");
     let evaluator = AchievementEvaluator::new(achievements_data).unwrap();
     let unlocked = evaluator.evaluate(&world.game);
 
@@ -53,7 +53,7 @@ async fn a_user_has_completed_challenges(world: &mut BddWorld, count: usize) {
 #[given(expr = "the user has {int} achievements")]
 async fn the_user_has_achievements(world: &mut BddWorld, _count: usize) {
     // This step just confirms the initial state
-    let achievements_data = include_str!("../../../konnektoren-core/assets/achievements.yml");
+    let achievements_data = include_str!("../../../assets/achievements.yml");
     let evaluator = AchievementEvaluator::new(achievements_data).unwrap();
     let unlocked = evaluator.evaluate(&world.game);
     assert_eq!(unlocked.len(), 0, "User should start with no achievements");
@@ -77,7 +77,7 @@ async fn the_user_completes_more_challenges(world: &mut BddWorld, additional_cou
     }
 
     // Re-evaluate achievements after adding challenges
-    let achievements_data = include_str!("../../../konnektoren-core/assets/achievements.yml");
+    let achievements_data = include_str!("../../../assets/achievements.yml");
     let evaluator = AchievementEvaluator::new(achievements_data).unwrap();
     let unlocked = evaluator.evaluate(&world.game);
 
@@ -102,7 +102,7 @@ async fn a_user_with_the_achievement(world: &mut BddWorld, achievement_name: Str
     }
 
     // Evaluate achievements to ensure the specified one is unlocked
-    let achievements_data = include_str!("../../../konnektoren-core/assets/achievements.yml");
+    let achievements_data = include_str!("../../../assets/achievements.yml");
     let evaluator = AchievementEvaluator::new(achievements_data).unwrap();
     let unlocked = evaluator.evaluate(&world.game);
 
@@ -129,7 +129,7 @@ async fn the_user_starts_a_new_session(world: &mut BddWorld) {
     world.session.game_state = game_state;
 
     // Re-evaluate achievements for the new session
-    let achievements_data = include_str!("../../../konnektoren-core/assets/achievements.yml");
+    let achievements_data = include_str!("../../../assets/achievements.yml");
     let evaluator = AchievementEvaluator::new(achievements_data).unwrap();
     let unlocked = evaluator.evaluate(&world.game);
     world.unlocked_achievements = unlocked.iter().map(|&a| a.clone()).collect();

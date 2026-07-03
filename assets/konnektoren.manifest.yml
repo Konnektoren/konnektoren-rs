@@ -1,0 +1,26 @@
+domain:
+  code: konnektoren
+  name: Konnektoren
+  base_path: /
+  icon: "🎓"
+  hostname: localhost
+  description: German grammar learning platform
+
+i18n:
+  path: i18n
+  default_language: en
+  languages:
+    - de
+    - en
+    - es
+    - pl
+    - tr
+    - uk
+    - ar
+    - zh
+
+assets:
+  path: assets
+
+game_paths:
+  - konnektoren.yml

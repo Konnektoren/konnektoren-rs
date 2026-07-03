@@ -17,7 +17,7 @@ pub struct ContextualChoice {
 
 impl Default for ContextualChoice {
     fn default() -> Self {
-        let data = include_str!("../../../assets/contextual_choice_default.yml");
+        let data = include_str!("../../../../assets/contextual_choice_default.yml");
         serde_yaml::from_str(data).unwrap()
     }
 }
@@ -130,7 +130,7 @@ mod tests {
 
     #[test]
     fn test_contextual_choice_file_deserialization() {
-        let data = include_str!("../../../assets/konjunktiv-2.yml");
+        let data = include_str!("../../../../assets/konjunktiv-2.yml");
         let contextual_choice: ContextualChoice = serde_yaml::from_str(data).unwrap();
 
         assert_eq!(contextual_choice.id, "konjunktiv-2");

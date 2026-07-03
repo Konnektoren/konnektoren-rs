@@ -39,7 +39,7 @@ mod tests {
 
     #[test]
     fn deserialize_achievement_definitions() {
-        let data = include_str!("../../assets/achievements.yml");
+        let data = include_str!("../../../assets/achievements.yml");
         let achievement_definitions: AchievementDefinitions = serde_yaml::from_str(data).unwrap();
         assert!(!achievement_definitions.achievements.is_empty());
     }
