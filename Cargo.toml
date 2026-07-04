@@ -1,3 +1,28 @@
+[package]
+name = "konnektoren-rs"
+description = "Rust implementation of Konnektoren language learning"
+keywords = ["konnektoren", "language", "education"]
+edition = { workspace = true }
+version = { workspace = true }
+license = { workspace = true }
+repository = { workspace = true }
+authors = { workspace = true }
+
+[lib]
+crate-type = ["rlib"]
+
+[features]
+default = ["core", "platform"]
+core = ["dep:konnektoren-core"]
+platform = ["dep:konnektoren-platform"]
+achievements = ["konnektoren-core/achievements"]
+certificates = ["konnektoren-core/certificates"]
+marketplace = ["konnektoren-core/marketplace"]
+
+[dependencies]
+konnektoren-core = { path = "konnektoren-core", optional = true }
+konnektoren-platform = { path = "konnektoren-platform", optional = true }
+
 [workspace]
 resolver = "3"
 
@@ -11,7 +36,7 @@ members = [
 
 [workspace.package]
 edition = "2024"
-version = "0.7.9"
+version = "0.8.0"
 license = "MIT"
 repository = "https://github.com/konnektoren/konnektoren-rs"
 authors = ["Christian M <chriamue@gmail.com>"]
