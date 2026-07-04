@@ -1,5 +1,5 @@
 use crate::BddWorld;
-use konnektoren_core::game::{Game, GamePath};
+use konnektoren_rs::core::game::{Game, GamePath};
 
 use cucumber::{given, then};
 

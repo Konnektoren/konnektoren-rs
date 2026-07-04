@@ -1,5 +1,5 @@
 use crate::BddWorld;
-use konnektoren_core::prelude::*;
+use konnektoren_rs::prelude::*;
 
 use cucumber::given;
 

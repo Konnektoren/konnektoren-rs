@@ -1,12 +1,12 @@
 use crate::BddWorld;
 use cucumber::{given, then, when};
-use konnektoren_core::challenges::{
+use konnektoren_rs::core::challenges::{
     Solvable,
     contextual_choice::{Choice, ContextItem, ContextItemChoiceAnswers, ContextualChoice},
     task_pattern::TaskPattern,
 };
-use konnektoren_core::commands::{ChallengeCommand, Command, CommandTrait};
-use konnektoren_core::prelude::*;
+use konnektoren_rs::core::commands::{ChallengeCommand, Command, CommandTrait};
+use konnektoren_rs::prelude::*;
 
 #[given(expr = "a konnektoren challenge with range pattern {string} is loaded")]
 async fn a_konnektoren_challenge_with_range_pattern(world: &mut BddWorld, pattern: String) {

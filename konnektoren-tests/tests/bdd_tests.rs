@@ -1,8 +1,8 @@
 use cucumber::World;
-use konnektoren_core::error::Result;
+use konnektoren_rs::core::error::Result;
 pub mod steps;
-use konnektoren_core::controller::GameController;
-use konnektoren_core::prelude::*;
+use konnektoren_rs::core::controller::GameController;
+use konnektoren_rs::prelude::*;
 use std::sync::Arc;
 
 #[derive(Debug, World)]

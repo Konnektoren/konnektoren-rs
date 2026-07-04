@@ -1,6 +1,6 @@
 use crate::BddWorld;
 use cucumber::{given, then, when};
-use konnektoren_core::prelude::*;
+use konnektoren_rs::prelude::*;
 
 #[when(expr = "attempts to access a challenge requiring {int} XP")]
 async fn attempts_to_access_challenge(world: &mut BddWorld, required_xp: u32) {

@@ -1,10 +1,10 @@
 use crate::BddWorld;
 use cucumber::{given, then, when};
-use konnektoren_core::commands::{ChallengeCommand, Command, CommandTrait, GameCommand};
-use konnektoren_core::controller::{GameController, GameControllerTrait};
-use konnektoren_core::error::KonnektorenError;
-use konnektoren_core::persistence::MemoryPersistence;
-use konnektoren_core::prelude::*;
+use konnektoren_rs::core::commands::{ChallengeCommand, Command, CommandTrait, GameCommand};
+use konnektoren_rs::core::controller::{GameController, GameControllerTrait};
+use konnektoren_rs::core::error::KonnektorenError;
+use konnektoren_rs::core::persistence::MemoryPersistence;
+use konnektoren_rs::prelude::*;
 use std::sync::Arc;
 use std::thread::sleep;
 use std::time::Duration;

@@ -1,8 +1,10 @@
 use crate::BddWorld;
 use cucumber::{given, then, when};
-use konnektoren_core::achievements::AchievementEvaluator;
-use konnektoren_core::challenges::Timed;
-use konnektoren_core::challenges::{Challenge, ChallengeConfig, ChallengeHistory, ChallengeType};
+use konnektoren_rs::achievements::AchievementEvaluator;
+use konnektoren_rs::core::challenges::Timed;
+use konnektoren_rs::core::challenges::{
+    Challenge, ChallengeConfig, ChallengeHistory, ChallengeType,
+};
 
 #[given(expr = "a user with {int} XP")]
 async fn a_user_with_xp(world: &mut BddWorld, xp: u32) {
@@ -124,7 +126,7 @@ async fn the_user_starts_a_new_session(world: &mut BddWorld) {
     let player_profile = world.session.player_profile.clone();
     let game_state = world.session.game_state.clone();
 
-    world.session = konnektoren_core::session::Session::new(player_profile.id.clone());
+    world.session = konnektoren_rs::core::session::Session::new(player_profile.id.clone());
     world.session.player_profile = player_profile;
     world.session.game_state = game_state;
 

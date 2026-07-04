@@ -1,12 +1,12 @@
 use crate::BddWorld;
 use cucumber::{given, then, when};
-use konnektoren_core::challenges::{
+use konnektoren_rs::core::challenges::{
     Challenge, ChallengeConfig, ChallengeResult, ChallengeType, Choice, ContextItem,
     ContextItemChoiceAnswers, ContextualChoice, Informative, Ordering, OrderingItem,
     OrderingResult, Performance, PerformanceRecord, Solvable, SortTable, SortTableColumn,
     SortTableRow, Timed, Vocabulary, VocabularyItem,
 };
-use konnektoren_core::prelude::*;
+use konnektoren_rs::prelude::*;
 
 // ============================================================================
 // Background Steps
@@ -642,7 +642,7 @@ async fn performance_record_is_calculated(world: &mut BddWorld) {
     );
 
     // Store it in the world for later assertions
-    world.achievement_notification = Some(konnektoren_core::achievements::AchievementDefinition {
+    world.achievement_notification = Some(konnektoren_rs::achievements::AchievementDefinition {
         id: format!(
             "perf_record:{}",
             performance_record.challenges_performance.len()

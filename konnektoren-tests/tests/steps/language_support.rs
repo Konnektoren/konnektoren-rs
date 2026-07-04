@@ -1,7 +1,7 @@
 use crate::BddWorld;
 use cucumber::{given, then, when};
-use konnektoren_core::prelude::*;
-use konnektoren_platform::i18n::{I18nConfig, JsonTranslationAsset, Language};
+use konnektoren_rs::i18n::{I18nConfig, JsonTranslationAsset, Language};
+use konnektoren_rs::prelude::*;
 use rust_embed::RustEmbed;
 use serde_json::{Value, json};
 use std::collections::HashMap;
@@ -17,9 +17,8 @@ async fn a_challenge_with_language_set_to(world: &mut BddWorld, language_code: S
     let language = Language::from_code(&language_code);
 
     // Load translations from the platform assets
-    let mut i18n_config = I18nConfig::with_assets(JsonTranslationAsset::<
-        konnektoren_platform::i18n::I18nAssets,
-    >::new());
+    let mut i18n_config =
+        I18nConfig::with_assets(JsonTranslationAsset::<konnektoren_rs::i18n::I18nAssets>::new());
 
     // Add test-specific translations
     if language_code == "de" {
@@ -120,7 +119,7 @@ async fn a_challenge_with_language_set_to(world: &mut BddWorld, language_code: S
     let i18n_serialized = serde_json::to_string(&i18n_config.translations).unwrap();
 
     // Remember the i18n data directly in the BddWorld struct
-    world.achievement_notification = Some(konnektoren_core::achievements::AchievementDefinition {
+    world.achievement_notification = Some(konnektoren_rs::achievements::AchievementDefinition {
         id: "i18n_data".to_string(),
         name: i18n_serialized,
         description: language_code,

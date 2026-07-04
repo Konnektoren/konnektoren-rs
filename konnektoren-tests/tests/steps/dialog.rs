@@ -1,7 +1,7 @@
 use crate::BddWorld;
 use cucumber::{given, then, when};
-use konnektoren_core::challenges::Solvable;
-use konnektoren_core::prelude::*;
+use konnektoren_rs::core::challenges::Solvable;
+use konnektoren_rs::prelude::*;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -127,12 +127,13 @@ async fn the_player_answers_turn_with_option(
         }
         Err(_) => {
             world.last_solve_correct = None;
-            world.last_command_result = Err(konnektoren_core::error::KonnektorenError::Challenge(
-                konnektoren_core::challenges::ChallengeError::InvalidInput(format!(
-                    "turn index {} out of bounds",
-                    turn_index
-                )),
-            ));
+            world.last_command_result =
+                Err(konnektoren_rs::core::error::KonnektorenError::Challenge(
+                    konnektoren_rs::core::challenges::ChallengeError::InvalidInput(format!(
+                        "turn index {} out of bounds",
+                        turn_index
+                    )),
+                ));
         }
     }
 }

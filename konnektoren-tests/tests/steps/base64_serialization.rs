@@ -1,8 +1,8 @@
 use crate::BddWorld;
 use base64::Engine;
 use cucumber::{given, then, when};
-use konnektoren_core::challenges::Base64Serializable;
-use konnektoren_core::prelude::*;
+use konnektoren_rs::core::challenges::Base64Serializable;
+use konnektoren_rs::prelude::*;
 
 #[when(expr = "the challenge is encoded to base64")]
 async fn the_challenge_is_encoded_to_base64(world: &mut BddWorld) {
@@ -255,7 +255,7 @@ async fn the_challenge_is_serialized_to_base64_and_back(world: &mut BddWorld) {
     world.challenge_type = decoded;
 
     // Store original in achievement_notification for comparison
-    world.achievement_notification = Some(konnektoren_core::achievements::AchievementDefinition {
+    world.achievement_notification = Some(konnektoren_rs::achievements::AchievementDefinition {
         id: "original_challenge".to_string(),
         name: format!("original_id:{}", original_challenge_type.id()),
         description: format!("original_name:{}", original_challenge_type.name()),

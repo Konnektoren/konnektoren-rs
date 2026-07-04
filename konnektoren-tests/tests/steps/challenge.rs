@@ -1,5 +1,5 @@
 use crate::BddWorld;
-use konnektoren_core::{challenges::Solvable, prelude::*};
+use konnektoren_rs::{core::challenges::Solvable, prelude::*};
 
 use cucumber::{given, then, when};
 

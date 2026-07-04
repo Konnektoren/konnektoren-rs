@@ -1,8 +1,8 @@
 use crate::BddWorld;
 use cucumber::{given, then, when};
-use konnektoren_core::commands::{ChallengeCommand, Command, CommandTrait, GameCommand};
-use konnektoren_core::error::KonnektorenError;
-use konnektoren_core::game::GamePath;
+use konnektoren_rs::core::commands::{ChallengeCommand, Command, CommandTrait, GameCommand};
+use konnektoren_rs::core::error::KonnektorenError;
+use konnektoren_rs::core::game::GamePath;
 
 #[when(expr = "the next challenge is requested")]
 async fn the_next_challenge_is_requested(world: &mut BddWorld) {
