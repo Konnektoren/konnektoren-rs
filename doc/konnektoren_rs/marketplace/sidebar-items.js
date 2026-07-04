@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["CheckoutState","CouponRedemptionError"],"struct":["Cart","Coupon","Payment","Product","ProductCatalog"]};

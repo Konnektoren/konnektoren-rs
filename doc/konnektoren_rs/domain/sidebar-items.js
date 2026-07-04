@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["LanguageDomain","LanguageDomainConfig"],"trait":["Domain","DomainConfig"]};

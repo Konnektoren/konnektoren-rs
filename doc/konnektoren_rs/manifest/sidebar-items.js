@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["DEFAULT_MANIFEST"],"mod":["domain","extensions","i18n","konnektoren"],"struct":["Assets","DomainManifest","I18nManifest","KonnektorenSections","Manifest","NoExtensions","Package"],"trait":["ManifestConfig","ManifestExtensions","ManifestSection"],"type":["KonnektorenManifest"]};

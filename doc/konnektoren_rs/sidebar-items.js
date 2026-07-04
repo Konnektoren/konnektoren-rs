@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["achievements","certificates","domain","faq","i18n","inbox","manifest","marketplace","prelude"]};

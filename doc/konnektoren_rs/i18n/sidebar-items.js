@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["AssetLoadError","Language"],"mod":["error","i18n_config","language","translation","translation_asset"],"struct":["CombinedTranslationAsset","I18nAssets","I18nConfig","JsonTranslationAsset","YamlTranslationAsset"],"trait":["Translation","TranslationAsset"]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["CombinedTranslationAsset","I18nAssets","JsonTranslationAsset","YamlTranslationAsset"],"trait":["TranslationAsset"]};
