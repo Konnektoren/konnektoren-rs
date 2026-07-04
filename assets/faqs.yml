@@ -5,9 +5,9 @@ faqs:
     answer: "Konnektoren is a web3-oriented platform designed to help you learn and practice German connectors (Konnektoren) in an engaging way. It runs directly in your browser using WebAssembly for high performance and privacy. 🚀💻"
     tags: ["general", "about", "introduction", "web3"]
     i18n:
-      de:
-        question: "🤔 Was ist Konnektoren?"
-        answer: "Konnektoren ist eine Web3-orientierte Plattform, die entwickelt wurde, um dir auf spielerische Weise beim Lernen und Üben deutscher Konnektoren zu helfen. Sie läuft direkt in deinem Browser mit WebAssembly für hohe Leistung und Privatsphäre. 🚀💻"
-      uk:
-        question: "🤔 Що таке Konnektoren?"
-        answer: "Konnektoren - це веб3-орієнтована платформа, розроблена для того, щоб допомогти вам вивчати та практикувати німецькі сполучники (Konnektoren) у захоплюючий спосіб. Вона працює безпосередньо у вашому браузері, використовуючи WebAssembly для високої продуктивності та конфіденційності. 🚀💻"
+      "🤔 What is Konnektoren?":
+        de: "🤔 Was ist Konnektoren?"
+        uk: "🤔 Що таке Konnektoren?"
+      "Konnektoren is a web3-oriented platform designed to help you learn and practice German connectors (Konnektoren) in an engaging way. It runs directly in your browser using WebAssembly for high performance and privacy. 🚀💻":
+        de: "Konnektoren ist eine Web3-orientierte Plattform, die entwickelt wurde, um dir auf spielerische Weise beim Lernen und Üben deutscher Konnektoren zu helfen. Sie läuft direkt in deinem Browser mit WebAssembly für hohe Leistung und Privatsphäre. 🚀💻"
+        uk: "Konnektoren - це веб3-орієнтована платформа, розроблена для того, щоб допомогти вам вивчати та практикувати німецькі сполучники (Konnektoren) у захоплюючий спосіб. Вона працює безпосередньо у вашому браузері, використовуючи WebAssembly для високої продуктивності та конфіденційності. 🚀💻"

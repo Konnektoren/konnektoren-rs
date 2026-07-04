@@ -16,7 +16,7 @@ manifest = "assets/konnektoren.manifest.yml"
 default = []
 manifest = ["dep:figment2"]
 tools = ["regex", "walkdir"]
-schema = ["konnektoren-core/schema"]
+schema = ["konnektoren-core/schema", "dep:schemars"]
 
 [dependencies]
 figment2 = { version = "0.11", features = ["yaml"], optional = true }
@@ -28,6 +28,7 @@ rust-embed = { workspace = true, features = [
     "interpolate-folder-path",
     "debug-embed",
 ] }
+schemars = { workspace = true, optional = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 serde_yaml = { workspace = true }
