@@ -40,6 +40,9 @@ pub use konnektoren_core::marketplace;
 #[cfg(feature = "platform")]
 pub use konnektoren_platform::{domain, i18n, manifest};
 
+#[cfg(feature = "content")]
+pub use konnektoren_content::{faq, inbox};
+
 /// Merged prelude of [`konnektoren_core::prelude`] and
 /// [`konnektoren_platform::prelude`].
 ///

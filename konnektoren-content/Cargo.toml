@@ -1,0 +1,20 @@
+[package]
+name = "konnektoren-content"
+description = "Editorial content models for Konnektoren (FAQ, inbox/news)"
+keywords = ["konnektoren", "content", "faq"]
+edition = { workspace = true }
+version = { workspace = true }
+license = { workspace = true }
+repository = { workspace = true }
+authors = { workspace = true }
+
+[lib]
+crate-type = ["rlib"]
+
+[dependencies]
+chrono = { workspace = true }
+konnektoren-platform = { path = "../konnektoren-platform" }
+serde = { workspace = true }
+
+[dev-dependencies]
+serde_yaml = { workspace = true }

@@ -15,18 +15,21 @@ crate-type = ["rlib"]
 default = ["core", "platform"]
 core = ["dep:konnektoren-core"]
 platform = ["dep:konnektoren-platform"]
+content = ["dep:konnektoren-content"]
 achievements = ["konnektoren-core/achievements"]
 certificates = ["konnektoren-core/certificates"]
 marketplace = ["konnektoren-core/marketplace"]
 
 [dependencies]
 konnektoren-core = { path = "konnektoren-core", optional = true }
+konnektoren-content = { path = "konnektoren-content", optional = true }
 konnektoren-platform = { path = "konnektoren-platform", optional = true }
 
 [workspace]
 resolver = "3"
 
 members = [
+    "konnektoren-content",
     "konnektoren-core",
     "konnektoren-page",
     "konnektoren-platform",
