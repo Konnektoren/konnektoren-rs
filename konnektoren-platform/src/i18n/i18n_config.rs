@@ -136,6 +136,14 @@ impl I18nConfig {
         }
     }
 
+    /// Merges all entries of a text-keyed [`TranslationMap`](super::TranslationMap)
+    /// into this config.
+    pub fn merge_translation_map(&mut self, map: &super::TranslationMap) {
+        for (lang, translations) in map.to_language_maps() {
+            self.merge_translation(&Language::from(lang.as_str()), translations);
+        }
+    }
+
     /// Returns ISO 639-1 codes for all supported languages.
     pub fn supported_codes(&self) -> Vec<&str> {
         self.supported_languages()

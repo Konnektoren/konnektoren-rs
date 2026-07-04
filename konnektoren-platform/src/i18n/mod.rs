@@ -3,6 +3,7 @@ pub mod i18n_config;
 pub mod language;
 pub mod translation;
 pub mod translation_asset;
+pub mod translation_map;
 
 pub use error::AssetLoadError;
 pub use i18n_config::I18nConfig;
@@ -12,6 +13,7 @@ pub use translation_asset::{
     CombinedTranslationAsset, I18nAssets, JsonTranslationAsset, TranslationAsset,
     YamlTranslationAsset,
 };
+pub use translation_map::TranslationMap;
 
 #[cfg(test)]
 mod tests {
