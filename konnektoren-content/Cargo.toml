@@ -11,10 +11,16 @@ authors = { workspace = true }
 [lib]
 crate-type = ["rlib"]
 
+[features]
+default = []
+schema = ["dep:schemars", "konnektoren-platform/schema"]
+
 [dependencies]
 chrono = { workspace = true }
 konnektoren-platform = { path = "../konnektoren-platform" }
+schemars = { workspace = true, optional = true }
 serde = { workspace = true }
 
 [dev-dependencies]
+serde_json = { workspace = true }
 serde_yaml = { workspace = true }
