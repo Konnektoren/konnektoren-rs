@@ -31,8 +31,19 @@ pub struct Custom {
 
 impl Default for Custom {
     fn default() -> Self {
-        let data = include_str!("../../../../assets/custom_default.yml");
-        serde_yaml::from_str(data).unwrap()
+        crate::assets::default_asset("custom_default.yml").unwrap_or_else(|| Self {
+            id: String::new(),
+            name: String::new(),
+            description: String::new(),
+            html: String::new(),
+            results_html: None,
+            css: String::new(),
+            js: String::new(),
+            i18n: None,
+            data: serde_json::Value::Null,
+            task_ids: None,
+            package_url: None,
+        })
     }
 }
 

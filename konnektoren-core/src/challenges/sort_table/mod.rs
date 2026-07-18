@@ -19,8 +19,13 @@ pub struct SortTable {
 
 impl Default for SortTable {
     fn default() -> Self {
-        let data = include_str!("../../../../assets/personal_pronouns.yml");
-        serde_yaml::from_str(data).unwrap()
+        crate::assets::default_asset("personal_pronouns.yml").unwrap_or_else(|| Self {
+            id: String::new(),
+            name: String::new(),
+            description: String::new(),
+            columns: Vec::new(),
+            rows: Vec::new(),
+        })
     }
 }
 

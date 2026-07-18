@@ -61,10 +61,12 @@
 //! # }
 //! ```
 
+mod defaults;
 mod error;
 mod format;
 mod source;
 
+pub use defaults::{DEFAULT_ASSETS, default_asset};
 pub use error::AssetError;
 pub use format::AssetFormat;
 pub use source::{AssetSource, DefaultAssetSource, EmbeddedSource, FileSource};

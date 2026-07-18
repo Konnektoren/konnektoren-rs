@@ -30,9 +30,8 @@ pub enum ChallengeType {
 
 impl Default for ChallengeType {
     fn default() -> Self {
-        let data = include_str!("../../../assets/konnektoren.yml");
-        serde_yaml::from_str(data)
-            .expect("embedded konnektoren.yml is valid YAML — this is a build-time error")
+        crate::assets::default_asset("konnektoren.yml")
+            .unwrap_or_else(|| ChallengeType::MultipleChoice(MultipleChoice::default()))
     }
 }
 

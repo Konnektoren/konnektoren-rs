@@ -29,11 +29,11 @@ pub type Xp = u32;
 pub mod prelude {
     pub use crate::Xp;
     pub use crate::analytics::metrics::Metric;
+    #[cfg(feature = "csr")]
+    pub use crate::assets::UrlSource;
     pub use crate::assets::{
         AssetError, AssetFormat, AssetSource, DefaultAssetSource, EmbeddedSource, FileSource,
     };
-    #[cfg(feature = "csr")]
-    pub use crate::assets::UrlSource;
     pub use crate::challenges::Challenge;
     pub use crate::challenges::ChallengeConfig;
     pub use crate::challenges::ChallengeFactory;

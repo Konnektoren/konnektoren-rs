@@ -17,8 +17,12 @@ pub struct ContextualChoice {
 
 impl Default for ContextualChoice {
     fn default() -> Self {
-        let data = include_str!("../../../../assets/contextual_choice_default.yml");
-        serde_yaml::from_str(data).unwrap()
+        crate::assets::default_asset("contextual_choice_default.yml").unwrap_or_else(|| Self {
+            id: String::new(),
+            name: String::new(),
+            description: String::new(),
+            items: Vec::new(),
+        })
     }
 }
 

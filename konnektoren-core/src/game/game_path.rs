@@ -16,8 +16,12 @@ pub struct GamePath {
 
 impl Default for GamePath {
     fn default() -> Self {
-        let data = include_str!("../../../assets/konnektoren_path.yml");
-        serde_yaml::from_str(data).unwrap()
+        crate::assets::default_asset("konnektoren_path.yml").unwrap_or_else(|| Self {
+            id: String::new(),
+            name: String::new(),
+            challenges: Vec::new(),
+            map: None,
+        })
     }
 }
 

@@ -17,8 +17,12 @@ pub struct Ordering {
 
 impl Default for Ordering {
     fn default() -> Self {
-        let data = include_str!("../../../../assets/ordering_default.yml");
-        serde_yaml::from_str(data).unwrap()
+        crate::assets::default_asset("ordering_default.yml").unwrap_or_else(|| Self {
+            id: String::new(),
+            name: String::new(),
+            description: String::new(),
+            items: Vec::new(),
+        })
     }
 }
 

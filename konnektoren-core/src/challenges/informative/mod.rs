@@ -17,8 +17,12 @@ pub struct Informative {
 
 impl Default for Informative {
     fn default() -> Self {
-        let data = include_str!("../../../../assets/personal_pronouns_info.yml");
-        serde_yaml::from_str(data).unwrap()
+        crate::assets::default_asset("personal_pronouns_info.yml").unwrap_or_else(|| Self {
+            id: String::new(),
+            name: String::new(),
+            description: String::new(),
+            text: Vec::new(),
+        })
     }
 }
 

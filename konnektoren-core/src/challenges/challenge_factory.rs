@@ -12,17 +12,19 @@ pub struct ChallengeFactory {
 
 impl Default for ChallengeFactory {
     fn default() -> Self {
-        ChallengeFactory {
-            challenge_types: vec![
-                ChallengeType::default(),
-                serde_yaml::from_str(include_str!("../../../assets/articles-1.yml")).unwrap(),
-                serde_yaml::from_str(include_str!("../../../assets/past-tense.yml")).unwrap(),
-                serde_yaml::from_str(include_str!("../../../assets/sentence_structure.yml"))
-                    .unwrap(),
-                serde_yaml::from_str(include_str!("../../../assets/dialog_begruessung.yml"))
-                    .unwrap(),
-            ],
-        }
+        // Empty when the `default-assets` feature is off.
+        let challenge_types = [
+            "konnektoren.yml",
+            "articles-1.yml",
+            "past-tense.yml",
+            "sentence_structure.yml",
+            "dialog_begruessung.yml",
+        ]
+        .iter()
+        .filter_map(|path| crate::assets::default_asset(path))
+        .collect();
+
+        ChallengeFactory { challenge_types }
     }
 }
 

@@ -19,8 +19,13 @@ pub struct GapFill {
 
 impl Default for GapFill {
     fn default() -> Self {
-        let data = include_str!("../../../../assets/gap_fill_default.yml");
-        serde_yaml::from_str(data).unwrap()
+        crate::assets::default_asset("gap_fill_default.yml").unwrap_or_else(|| Self {
+            id: String::new(),
+            name: String::new(),
+            description: String::new(),
+            lang: String::new(),
+            questions: Vec::new(),
+        })
     }
 }
 

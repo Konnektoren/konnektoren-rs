@@ -24,8 +24,15 @@ pub struct Placeholder {
 
 impl Default for Placeholder {
     fn default() -> Self {
-        let data = include_str!("../../../../assets/placeholder_default.yml");
-        serde_yaml::from_str(data).unwrap()
+        crate::assets::default_asset("placeholder_default.yml").unwrap_or_else(|| Self {
+            id: String::new(),
+            name: String::new(),
+            description: String::new(),
+            type_: PlaceholderType::ComingSoon,
+            image: None,
+            estimated_time: None,
+            text: Vec::new(),
+        })
     }
 }
 

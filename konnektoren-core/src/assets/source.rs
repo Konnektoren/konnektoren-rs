@@ -27,11 +27,7 @@ pub trait AssetSource {
     /// Provided method — implementors only supply
     /// [`load_bytes`](AssetSource::load_bytes).
     #[allow(async_fn_in_trait)]
-    async fn load<F: AssetFormat>(
-        &self,
-        format: &F,
-        path: &str,
-    ) -> Result<F::Asset, AssetError> {
+    async fn load<F: AssetFormat>(&self, format: &F, path: &str) -> Result<F::Asset, AssetError> {
         let bytes = self.load_bytes(path).await?;
         format
             .parse(&bytes)
@@ -325,7 +321,10 @@ mod tests {
             source.load_bytes("only_second.txt").await.unwrap(),
             b"from second"
         );
-        assert_eq!(source.load_bytes("in_both.txt").await.unwrap(), b"from first");
+        assert_eq!(
+            source.load_bytes("in_both.txt").await.unwrap(),
+            b"from first"
+        );
     }
 
     #[tokio::test]

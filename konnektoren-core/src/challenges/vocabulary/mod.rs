@@ -22,8 +22,14 @@ pub struct Vocabulary {
 
 impl Default for Vocabulary {
     fn default() -> Self {
-        let data = include_str!("../../../../assets/vocabulary_default.yml");
-        serde_yaml::from_str(data).unwrap()
+        crate::assets::default_asset("vocabulary_default.yml").unwrap_or_else(|| Self {
+            id: String::new(),
+            name: String::new(),
+            description: String::new(),
+            icon: None,
+            lang: String::new(),
+            items: Vec::new(),
+        })
     }
 }
 

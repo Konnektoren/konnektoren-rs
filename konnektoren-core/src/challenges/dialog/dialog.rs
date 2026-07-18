@@ -95,10 +95,18 @@ impl Dialog {
 
 impl Default for Dialog {
     fn default() -> Self {
-        let data = include_str!("../../../../assets/dialog_begruessung.yml");
         // The asset uses the `!dialog` YAML tag for ChallengeType dispatch;
         // serde_yaml ignores unknown tags when deserializing into a plain struct.
-        serde_yaml::from_str(data).unwrap()
+        crate::assets::default_asset("dialog_begruessung.yml").unwrap_or_else(|| Self {
+            id: String::new(),
+            name: String::new(),
+            description: String::new(),
+            lang: String::new(),
+            scenario: None,
+            image: None,
+            speakers: [Speaker::default(), Speaker::default()],
+            turns: Vec::new(),
+        })
     }
 }
 
