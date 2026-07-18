@@ -1,0 +1,20 @@
+[package]
+name = "konnektoren-asset-loader"
+description = "Feature-rich, framework-free asset loading for Konnektoren"
+edition = { workspace = true }
+version = { workspace = true }
+license = { workspace = true }
+repository = { workspace = true }
+authors = { workspace = true }
+
+[features]
+default = ["derive"]
+derive = ["dep:konnektoren-asset-loader-derive"]
+zip = ["dep:zip"]
+
+[dependencies]
+futures = { workspace = true }
+thiserror = { workspace = true }
+zip = { workspace = true, optional = true, features = ["deflate"] }
+konnektoren-core = { path = "../konnektoren-core", default-features = false }
+konnektoren-asset-loader-derive = { path = "../konnektoren-asset-loader-derive", optional = true }
