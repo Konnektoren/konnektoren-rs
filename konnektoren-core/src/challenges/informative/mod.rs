@@ -17,7 +17,7 @@ pub struct Informative {
 
 impl Default for Informative {
     fn default() -> Self {
-        crate::assets::default_asset("personal_pronouns_info.yml").unwrap_or_else(|| Self {
+        crate::assets::default_asset("informative_default.yml").unwrap_or_else(|| Self {
             id: String::new(),
             name: String::new(),
             description: String::new(),
@@ -41,7 +41,7 @@ mod tests {
 
     #[test]
     fn from_yaml() {
-        let yaml_data = include_str!("../../../../assets/personal_pronouns_info.yml");
+        let yaml_data = include_str!("../../../../assets/informative_default.yml");
         let dataset: Informative = serde_yaml::from_str(yaml_data).unwrap();
         assert_eq!(dataset.id, "personal_pronouns_info");
         assert_eq!(dataset.name, "Personal Pronouns Info");

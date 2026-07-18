@@ -18,7 +18,7 @@ impl Default for ChallengeFactory {
             "articles-1.yml",
             "past-tense.yml",
             "sentence_structure.yml",
-            "dialog_begruessung.yml",
+            "dialog_default.yml",
         ]
         .iter()
         .filter_map(|path| crate::assets::default_asset(path))

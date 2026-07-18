@@ -34,16 +34,16 @@ pub static DEFAULT_ASSETS: EmbeddedSource = EmbeddedSource::new(&[
         include_str!("../../../assets/sentence_structure.yml").as_bytes(),
     ),
     (
-        "dialog_begruessung.yml",
-        include_str!("../../../assets/dialog_begruessung.yml").as_bytes(),
+        "dialog_default.yml",
+        include_str!("../../../assets/dialog_default.yml").as_bytes(),
     ),
     (
-        "personal_pronouns.yml",
-        include_str!("../../../assets/personal_pronouns.yml").as_bytes(),
+        "sort_table_default.yml",
+        include_str!("../../../assets/sort_table_default.yml").as_bytes(),
     ),
     (
-        "personal_pronouns_info.yml",
-        include_str!("../../../assets/personal_pronouns_info.yml").as_bytes(),
+        "informative_default.yml",
+        include_str!("../../../assets/informative_default.yml").as_bytes(),
     ),
     (
         "gap_fill_default.yml",

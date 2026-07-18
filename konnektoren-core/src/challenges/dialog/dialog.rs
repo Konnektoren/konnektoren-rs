@@ -97,7 +97,7 @@ impl Default for Dialog {
     fn default() -> Self {
         // The asset uses the `!dialog` YAML tag for ChallengeType dispatch;
         // serde_yaml ignores unknown tags when deserializing into a plain struct.
-        crate::assets::default_asset("dialog_begruessung.yml").unwrap_or_else(|| Self {
+        crate::assets::default_asset("dialog_default.yml").unwrap_or_else(|| Self {
             id: String::new(),
             name: String::new(),
             description: String::new(),
@@ -270,7 +270,7 @@ mod tests {
 
     #[test]
     fn default_dialog_has_three_quiz_turns() {
-        // Asset dialog_begruessung.yml has quiz turns at indices 1, 3, 5
+        // Asset dialog_default.yml has quiz turns at indices 1, 3, 5
         assert_eq!(Dialog::default().quiz_turn_count(), 3);
     }
 
