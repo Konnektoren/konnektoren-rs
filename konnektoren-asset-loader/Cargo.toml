@@ -18,3 +18,11 @@ thiserror = { workspace = true }
 zip = { workspace = true, optional = true, features = ["deflate"] }
 konnektoren-core = { path = "../konnektoren-core", default-features = false }
 konnektoren-asset-loader-derive = { path = "../konnektoren-asset-loader-derive", optional = true }
+
+[dev-dependencies]
+cucumber = { workspace = true }
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+
+[[test]]
+name = "asset_loader_bdd"
+harness = false
