@@ -17,6 +17,9 @@ pub enum KonnektorenError {
     #[error("Asset loader error: {0}")]
     AssetLoader(String),
 
+    #[error("Asset error: {0}")]
+    Asset(#[from] crate::assets::AssetError),
+
     #[cfg(feature = "certificates")]
     #[error("Certificate error: {0}")]
     Certificate(#[from] crate::certificates::CertificateError),
