@@ -1,13 +1,17 @@
 use super::{AssetError, AssetFormat};
-use crate::asset_loader::AssetLoader;
+use std::path::PathBuf;
+
+#[cfg(feature = "csr")]
+use gloo::net::http::Request;
 
 /// Delivers raw bytes for a path — the only async piece of the pipeline.
 ///
-/// Implementations decide *where* bytes come from: HTTP fetch or filesystem
-/// (both via [`AssetLoader`]), compile-time embeds ([`EmbeddedSource`]), or —
-/// in richer implementation crates — zip archives and source chains. Callers
-/// never branch on the backend; they pick which source value to construct
-/// (or get one injected) and the call shape stays the same.
+/// Implementations decide *where* bytes come from: compile-time embeds
+/// ([`EmbeddedSource`]), the filesystem ([`FileSource`]), HTTP fetch
+/// ([`UrlSource`], CSR), or — in richer implementation crates — zip archives
+/// and source chains. Callers never branch on the backend; they pick which
+/// source value to construct (or get one injected) and the call shape stays
+/// the same.
 ///
 /// The trait is async by contract because real backends must await (browser
 /// `fetch`, filesystem reads); instant backends like [`EmbeddedSource`]
@@ -35,19 +39,17 @@ pub trait AssetSource {
     }
 }
 
-/// The existing runtime loader is an [`AssetSource`]: `Url` fetch in CSR,
-/// filesystem search in SSR — chosen by construction, invisible to callers
-/// of the trait.
-impl AssetSource for AssetLoader {
-    async fn load_bytes(&self, path: &str) -> Result<Vec<u8>, AssetError> {
-        self.load_binary(path)
-            .await
-            .map_err(|err| AssetError::Load {
-                path: path.into(),
-                message: err.to_string(),
-            })
-    }
-}
+/// The source used when none is injected: [`UrlSource`] under the `csr`
+/// feature (browser fetch from `/assets/`), [`FileSource`] everywhere else
+/// (SSR, native, tests).
+#[cfg(feature = "csr")]
+pub type DefaultAssetSource = UrlSource;
+
+/// The source used when none is injected: [`UrlSource`] under the `csr`
+/// feature (browser fetch from `/assets/`), [`FileSource`] everywhere else
+/// (SSR, native, tests).
+#[cfg(not(feature = "csr"))]
+pub type DefaultAssetSource = FileSource;
 
 /// Compile-time embedded [`AssetSource`] — core's own minimal backend.
 ///
@@ -101,6 +103,145 @@ impl AssetSource for EmbeddedSource {
         self.get(path)
             .map(<[u8]>::to_vec)
             .ok_or_else(|| AssetError::NotFound { path: path.into() })
+    }
+}
+
+/// Filesystem [`AssetSource`] for SSR, native binaries and tests.
+///
+/// Tries each base directory in order and reads the first hit; an absolute
+/// `path` that exists is read directly as a last resort.
+///
+/// [`Default`] searches `$BUILD_DIR` (when set), the current directory and
+/// `assets/`.
+#[derive(Debug, Clone)]
+pub struct FileSource {
+    base_dirs: Vec<PathBuf>,
+}
+
+impl FileSource {
+    /// Creates a source that searches `base_dirs` in order.
+    pub fn new(base_dirs: Vec<PathBuf>) -> Self {
+        Self { base_dirs }
+    }
+
+    /// Creates a source with a single base directory.
+    pub fn from_dir(dir: impl Into<PathBuf>) -> Self {
+        Self {
+            base_dirs: vec![dir.into()],
+        }
+    }
+
+    /// The directories searched, in order.
+    pub fn base_dirs(&self) -> &[PathBuf] {
+        &self.base_dirs
+    }
+}
+
+impl Default for FileSource {
+    fn default() -> Self {
+        let mut base_dirs = Vec::new();
+        if let Ok(build_dir) = std::env::var("BUILD_DIR") {
+            base_dirs.push(PathBuf::from(build_dir));
+        }
+        base_dirs.push(PathBuf::from("./"));
+        base_dirs.push(PathBuf::from("assets"));
+        Self { base_dirs }
+    }
+}
+
+impl AssetSource for FileSource {
+    async fn load_bytes(&self, path: &str) -> Result<Vec<u8>, AssetError> {
+        for base_dir in &self.base_dirs {
+            let file_path = base_dir.join(path);
+            if file_path.exists() {
+                return std::fs::read(&file_path).map_err(|source| AssetError::Load {
+                    path: file_path.display().to_string(),
+                    message: source.to_string(),
+                });
+            }
+        }
+
+        let path_buf = PathBuf::from(path);
+        if path_buf.is_absolute() && path_buf.exists() {
+            return std::fs::read(&path_buf).map_err(|source| AssetError::Load {
+                path: path_buf.display().to_string(),
+                message: source.to_string(),
+            });
+        }
+
+        Err(AssetError::NotFound { path: path.into() })
+    }
+}
+
+/// HTTP-fetch [`AssetSource`] for CSR (browser) builds.
+///
+/// Joins `base_url` and the requested path with exactly one `/` between
+/// them, so both `"/assets/"` and `"/assets"` work as a base.
+///
+/// [`Default`] fetches from `/assets/`.
+#[cfg(feature = "csr")]
+#[derive(Debug, Clone)]
+pub struct UrlSource {
+    base_url: String,
+}
+
+#[cfg(feature = "csr")]
+impl UrlSource {
+    /// Creates a source fetching relative to `base_url`.
+    pub fn new(base_url: impl Into<String>) -> Self {
+        Self {
+            base_url: base_url.into(),
+        }
+    }
+
+    /// The base URL requests are made against.
+    pub fn base_url(&self) -> &str {
+        &self.base_url
+    }
+
+    fn url_for(&self, path: &str) -> String {
+        let normalized_path = path.trim_start_matches('/');
+        if self.base_url.ends_with('/') {
+            format!("{}{}", self.base_url, normalized_path)
+        } else {
+            format!("{}/{}", self.base_url, normalized_path)
+        }
+    }
+}
+
+#[cfg(feature = "csr")]
+impl Default for UrlSource {
+    fn default() -> Self {
+        Self {
+            base_url: "/assets/".to_string(),
+        }
+    }
+}
+
+#[cfg(feature = "csr")]
+impl AssetSource for UrlSource {
+    async fn load_bytes(&self, path: &str) -> Result<Vec<u8>, AssetError> {
+        let url = self.url_for(path);
+
+        let response = Request::get(&url)
+            .send()
+            .await
+            .map_err(|e| AssetError::Load {
+                path: url.clone(),
+                message: format!("failed to send request: {}", e),
+            })?;
+
+        if response.status() != 200 {
+            return Err(AssetError::Load {
+                path: url,
+                message: format!("status {}", response.status()),
+            });
+        }
+
+        response.binary().await.map_err(|e| AssetError::Load {
+            path: url,
+            message: format!("failed to read response: {}", e),
+        })
     }
 }
 
@@ -159,24 +300,114 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn asset_loader_file_variant_is_a_source() {
+    async fn file_source_loads_from_base_dir() {
         let dir = tempfile::tempdir().unwrap();
         std::fs::write(dir.path().join("hello.txt"), "from disk").unwrap();
 
-        let loader = AssetLoader::from_dir(dir.path());
-        let bytes = loader.load_bytes("hello.txt").await.unwrap();
+        let source = FileSource::from_dir(dir.path());
+        let bytes = source.load_bytes("hello.txt").await.unwrap();
         assert_eq!(bytes, b"from disk");
 
-        let text = loader.load(&Utf8Format, "hello.txt").await.unwrap();
+        let text = source.load(&Utf8Format, "hello.txt").await.unwrap();
         assert_eq!(text, "from disk");
     }
 
     #[tokio::test]
-    async fn asset_loader_missing_file_maps_to_load_error() {
-        let dir = tempfile::tempdir().unwrap();
-        let loader = AssetLoader::from_dir(dir.path());
+    async fn file_source_searches_base_dirs_in_order() {
+        let first = tempfile::tempdir().unwrap();
+        let second = tempfile::tempdir().unwrap();
+        std::fs::write(second.path().join("only_second.txt"), "from second").unwrap();
+        std::fs::write(first.path().join("in_both.txt"), "from first").unwrap();
+        std::fs::write(second.path().join("in_both.txt"), "from second").unwrap();
 
-        let err = loader.load_bytes("missing.yml").await.unwrap_err();
-        assert!(matches!(err, AssetError::Load { path, .. } if path == "missing.yml"));
+        let source = FileSource::new(vec![first.path().into(), second.path().into()]);
+        assert_eq!(
+            source.load_bytes("only_second.txt").await.unwrap(),
+            b"from second"
+        );
+        assert_eq!(source.load_bytes("in_both.txt").await.unwrap(), b"from first");
+    }
+
+    #[tokio::test]
+    async fn file_source_loads_absolute_path_as_fallback() {
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::write(dir.path().join("abs.txt"), "absolute").unwrap();
+
+        let source = FileSource::from_dir("nonexistent-dir");
+        let abs = dir.path().join("abs.txt");
+        let bytes = source.load_bytes(abs.to_str().unwrap()).await.unwrap();
+        assert_eq!(bytes, b"absolute");
+    }
+
+    #[tokio::test]
+    async fn file_source_missing_file_is_not_found() {
+        let dir = tempfile::tempdir().unwrap();
+        let source = FileSource::from_dir(dir.path());
+
+        let err = source.load_bytes("missing.yml").await.unwrap_err();
+        assert!(matches!(err, AssetError::NotFound { path } if path == "missing.yml"));
+    }
+
+    #[cfg(all(feature = "ssr", not(feature = "csr")))]
+    #[tokio::test]
+    async fn default_file_source_honors_build_dir() {
+        let temp_dir = tempfile::tempdir().unwrap();
+        let assets_dir = temp_dir.path().join("assets");
+        std::fs::create_dir_all(&assets_dir).unwrap();
+        std::fs::write(
+            assets_dir.join("konnektoren.yml"),
+            include_str!("../../../assets/konnektoren.yml"),
+        )
+        .unwrap();
+
+        unsafe { std::env::set_var("BUILD_DIR", temp_dir.path().to_str().unwrap()) };
+        let source = FileSource::default();
+        unsafe { std::env::remove_var("BUILD_DIR") };
+
+        let content = source.load_bytes("assets/konnektoren.yml").await.unwrap();
+        let content_str = String::from_utf8(content).unwrap();
+        assert!(content_str.contains("id: \"konnektoren\""));
+        assert!(content_str.contains("name: \"Konnektoren\""));
+    }
+
+    #[cfg(feature = "csr")]
+    mod csr {
+        use super::*;
+        use wasm_bindgen_test::*;
+
+        wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
+
+        #[test]
+        fn url_source_normalizes_paths() {
+            assert_eq!(
+                UrlSource::new("/assets/").url_for("/konnektoren.yml"),
+                "/assets/konnektoren.yml"
+            );
+            assert_eq!(
+                UrlSource::new("https://example.com/static").url_for("konnektoren.yml"),
+                "https://example.com/static/konnektoren.yml"
+            );
+        }
+
+        #[wasm_bindgen_test]
+        async fn url_source_default_fetches_from_assets() {
+            // No server in the test environment — assert the failed fetch
+            // reports the URL it tried, proving URL construction.
+            let source = UrlSource::default();
+            if let Err(e) = source.load_bytes("assets/konnektoren.yml").await {
+                assert!(e.to_string().contains("assets/konnektoren.yml"));
+            }
+        }
+
+        #[wasm_bindgen_test]
+        async fn url_source_uses_custom_base() {
+            let source = UrlSource::new("https://example.com/static");
+            if let Err(e) = source.load_bytes("assets/konnektoren.yml").await {
+                assert!(
+                    e.to_string()
+                        .contains("https://example.com/static/assets/konnektoren.yml")
+                );
+            }
+        }
     }
 }

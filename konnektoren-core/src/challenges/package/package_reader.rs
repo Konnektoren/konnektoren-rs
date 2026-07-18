@@ -1,4 +1,4 @@
-use crate::asset_loader::AssetLoader;
+use crate::assets::{AssetSource, DefaultAssetSource};
 use crate::challenges::{Package, PackageMetadata};
 use crate::error::KonnektorenError;
 use std::collections::HashMap;
@@ -9,8 +9,8 @@ pub struct PackageReader;
 
 impl PackageReader {
     pub async fn download(url: &str) -> Result<Vec<u8>, KonnektorenError> {
-        let loader = AssetLoader::default();
-        loader.load_binary(url).await
+        let source = DefaultAssetSource::default();
+        Ok(source.load_bytes(url).await?)
     }
 
     pub fn read(package_data: &[u8]) -> Result<Package, String> {
@@ -90,7 +90,7 @@ mod tests {
         let build_dir_path = temp_dir.path().to_str().unwrap().to_string();
 
         // 2. Create a test zip file within the temporary directory
-        let test_zip_content = include_bytes!("../../../assets/articles-pkg.zip");
+        let test_zip_content = include_bytes!("../../../../assets/articles-pkg.zip");
         let test_zip_path = format!("{}/test_package.zip", build_dir_path);
         fs::write(&test_zip_path, test_zip_content).unwrap();
 

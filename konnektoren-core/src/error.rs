@@ -14,9 +14,6 @@ pub enum KonnektorenError {
     #[error("Command error: {0}")]
     Command(#[from] crate::commands::CommandError),
 
-    #[error("Asset loader error: {0}")]
-    AssetLoader(String),
-
     #[error("Asset error: {0}")]
     Asset(#[from] crate::assets::AssetError),
 

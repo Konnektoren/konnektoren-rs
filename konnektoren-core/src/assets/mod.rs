@@ -7,14 +7,21 @@
 //! - [`AssetSource`] — *where bytes come from*. **Async by contract**: the
 //!   trait is written for backends that must await (browser `fetch`,
 //!   filesystem), and its futures are not required to be `Send` so wasm
-//!   backends fit. The existing
-//!   [`AssetLoader`](crate::asset_loader::AssetLoader) (`Url` fetch in CSR,
-//!   filesystem in SSR) implements it.
+//!   backends fit.
 //! - [`AssetFormat`] — *bytes → typed asset*. Sync, pure, trivially
 //!   unit-testable; knows nothing about sources.
-//! - [`EmbeddedSource`] — core's own implementation: compile-time embedded
-//!   bytes via `include_bytes!` / `include_str!`. Answering from memory, it
-//!   resolves instantly behind the same async interface, and needs no cache.
+//!
+//! Core ships three sources:
+//!
+//! - [`EmbeddedSource`] — compile-time embedded bytes via `include_bytes!` /
+//!   `include_str!`. Answering from memory, it resolves instantly behind the
+//!   same async interface, and needs no cache.
+//! - [`FileSource`] — filesystem search over base directories (SSR, native,
+//!   tests).
+//! - `UrlSource` (`csr` feature) — browser HTTP fetch.
+//!
+//! [`DefaultAssetSource`] names the one to use when nothing is injected:
+//! `UrlSource` in CSR builds, [`FileSource`] otherwise.
 //!
 //! Caching (`Arc<T>`, single-flight dedup), runtime fetch policies, zip
 //! archives, per-kind embed features and an `AssetCollection` derive are
@@ -60,4 +67,7 @@ mod source;
 
 pub use error::AssetError;
 pub use format::AssetFormat;
-pub use source::{AssetSource, EmbeddedSource};
+pub use source::{AssetSource, DefaultAssetSource, EmbeddedSource, FileSource};
+
+#[cfg(feature = "csr")]
+pub use source::UrlSource;
