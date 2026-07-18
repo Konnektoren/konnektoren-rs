@@ -29,6 +29,8 @@ konnektoren-platform = { path = "konnektoren-platform", optional = true }
 resolver = "3"
 
 members = [
+    "konnektoren-asset-loader",
+    "konnektoren-asset-loader-derive",
     "konnektoren-content",
     "konnektoren-core",
     "konnektoren-page",
@@ -70,6 +72,10 @@ js-sys = "0.3"
 gloo = "0.12"
 
 # Common utilities
+futures = "0.3"
+proc-macro2 = "1"
+quote = "1"
+syn = "2"
 chrono = { version = "0.4", features = ["serde"] }
 isolang = "2"
 rand = "0.8"
