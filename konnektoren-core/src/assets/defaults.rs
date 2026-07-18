@@ -69,6 +69,10 @@ pub static DEFAULT_ASSETS: EmbeddedSource = EmbeddedSource::new(&[
         "vocabulary_default.yml",
         include_str!("../../../assets/vocabulary_default.yml").as_bytes(),
     ),
+    (
+        "multiple_choice_default.yml",
+        include_str!("../../../assets/multiple_choice_default.yml").as_bytes(),
+    ),
 ]);
 
 /// Embedded default content behind the `default-assets` feature.

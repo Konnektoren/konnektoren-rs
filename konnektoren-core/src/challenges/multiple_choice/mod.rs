@@ -2,7 +2,7 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-#[derive(Default, Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[cfg_attr(feature = "schema", derive(JsonSchema))]
 pub struct MultipleChoice {
     /// Unique identifier for the challenge
@@ -15,6 +15,18 @@ pub struct MultipleChoice {
     pub options: Vec<MultipleChoiceOption>,
     /// List of questions
     pub questions: Vec<Question>,
+}
+
+impl Default for MultipleChoice {
+    fn default() -> Self {
+        crate::assets::default_asset("multiple_choice_default.yml").unwrap_or_else(|| Self {
+            id: String::new(),
+            name: String::new(),
+            lang: String::new(),
+            options: Vec::new(),
+            questions: Vec::new(),
+        })
+    }
 }
 
 #[derive(Default, Debug, Serialize, Deserialize, Clone, PartialEq)]
